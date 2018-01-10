@@ -1,16 +1,35 @@
 if (annyang) {
     // Let's define our first command. First the text we expect, and then the function it should call
-    var commands = {
-        'show tps report': function() {
-            $('#tpsreport').animate({bottom: '-100px'});
-        }
+    var commands = {};
+
+
+    var simplewires = {
+        numberOfWires: 0,
+        simpleWires: function (count) {
+            console.log("Simple wires!" + count);
+        },
+        wireColours: function(c1, c2, c3, c4, c5, c6) {
+            console.log("Colours: " + c1 + c2 + c3 + c4 + c5 + c6);
+        },
     };
+
+
+
+    commands['simple wires'] = {'regexp' : /^simple wires (three|four|five|six) wires$/, 'callback': simplewires.simpleWires};
+    commands['wire colours'] = {'regexp' : /^(red|blue|black|yellow|white) (red|blue|black|yellow|white) (red|blue|black|yellow|white) ?(red|blue|black|yellow|white)? ?(red|blue|black|yellow|white)? ?(red|blue|black|yellow|white)?$/ , 'callback': simplewires.wireColours};
+
+
+
+    annyang.debug(true);
 
     // Add our commands to annyang
     annyang.addCommands(commands);
 
     // Start listening. You can call this here, or attach this call to an event, button, etc.
-    annyang.start();
+    annyang.start({ autoRestart: true });
+
+
+    console.log("Started");
 }
 
 
@@ -18,29 +37,13 @@ if (annyang) {
 angular.module('todoApp', [])
     .controller('TodoListController', function() {
         var todoList = this;
-        todoList.todos = [
-            {text:'learn AngularJS', done:true},
-            {text:'build an AngularJS app', done:false}];
 
         todoList.addTodo = function() {
-            todoList.todos.push({text:todoList.todoText, done:false});
+
+            annyang.trigger(todoList.todoText);
             todoList.todoText = '';
         };
 
-        todoList.remaining = function() {
-            var count = 0;
-            angular.forEach(todoList.todos, function(todo) {
-                count += todo.done ? 0 : 1;
-            });
-            return count;
-        };
 
-        todoList.archive = function() {
-            var oldTodos = todoList.todos;
-            todoList.todos = [];
-            angular.forEach(oldTodos, function(todo) {
-                if (!todo.done) todoList.todos.push(todo);
-            });
-        };
     });
 
