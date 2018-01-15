@@ -159,7 +159,7 @@ angular.module('ktane', [])
                         }else if(counts.blue === 1){
                             $scope.say("Cut the first wire");
                             finish();
-                        }else if(counts.yellow > 2){
+                        }else if(counts.yellow > 1){
                             $scope.say("Cut the last wire");
                             finish();
                         }else{
@@ -183,16 +183,69 @@ angular.module('ktane', [])
                         stage2();
                     }
 
-
-
                 }
 
                 if (params.numberOfWires === 5 && arguments.length === 5) {
-                    // TODO: 5 wires
+
+                    var stage2 = function(){
+                        if(counts.red === 1 && counts.yellow > 1){
+                            $scope.say("Cut the first wire");
+                            finish();
+                        }else if(counts.black === 0) {
+                            $scope.say("Cut the second wire");
+                            finish();
+                        }else{
+                            $scope.say("Cut the first wire");
+                            finish();
+                        }
+                    };
+
+
+
+                    if(c5 === "black"){
+                        $scope.property("serialnumber_evenodd").then(function (serialnumber) {
+                            if (serialnumber === "odd") {
+                                $scope.say("Cut the fourth wire");
+                                finish();
+                            } else {
+                                stage2();
+                            }
+                        });
+                    }else{
+                        stage2();
+                    }
+
                 }
 
                 if (params.numberOfWires === 6 && arguments.length === 6) {
-                    // TODO: 6 wires
+                    var stage2 = function(){
+                        if(counts.yellow === 1 && counts.white > 1){
+                            $scope.say("Cut the fourth wire");
+                            finish();
+                        }else if(counts.red === 0) {
+                            $scope.say("Cut the last wire");
+                            finish();
+                        }else{
+                            $scope.say("Cut the fourth wire");
+                            finish();
+                        }
+                    };
+
+
+
+                    if(counts.yellow === 0){
+                        $scope.property("serialnumber_evenodd").then(function (serialnumber) {
+                            if (serialnumber === "odd") {
+                                $scope.say("Cut the third wire");
+                                finish();
+                            } else {
+                                stage2();
+                            }
+                        });
+                    }else{
+                        stage2();
+                    }
+
                 }
             };
 
