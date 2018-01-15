@@ -213,7 +213,6 @@ angular.module('ktane', [])
             return params;
         }();
 
-
         $scope.button = function () {
             var name = "button";
             var params = {
@@ -381,6 +380,7 @@ angular.module('ktane', [])
                     [2, 3, 2, 3, 0, 2],
                     [2, 2, 0, 2, 1, 0],
                 ]),
+                // TODO : Add other mazes in here
             };
 
             var mazemarkers = {
@@ -530,7 +530,6 @@ angular.module('ktane', [])
             return params;
 
         }();
-
 
         $scope.password = function () {
             var name = "password";
@@ -684,6 +683,179 @@ angular.module('ktane', [])
             return params;
         }();
 
+        $scope.memory = function () {
+            var name = "memory";
+            var params = {
+                stage: 0,
+                stages: {
+                    1: {"position": null, "label": null},
+                    2: {"position": null, "label": null},
+                    3: {"position": null, "label": null},
+                    4: {"position": null, "label": null},
+                    5: {"position": null, "label": null},
+                },
+            };
+
+
+            var memory = function (value) {
+                $scope.log("Memory");
+                $scope.currentmodule = name;
+
+
+                $scope.annyang.addCommands({
+                    "memory:display": {
+                        'regexp': /^display says (one|1|two|to|too|2|three|four|for|4|3)$/,
+                        'callback': display
+                    },
+                    "memory:label": {
+                        'regexp': /^label (?:was)? (one|1|two|to|too|2|three|four|for|4|3)$/,
+                        'callback': label
+                    },
+                    "memory:position": {
+                        'regexp': /^position (?:was)? (one|1|two|to|too|2|three|four|for|4|3)$/,
+                        'callback': position
+                    }
+
+                });
+
+                display(value);
+
+            };
+
+            var display = function (value) {
+
+                value = numbers[value];
+                params.stage++; // Increase the stage number
+
+                if(params.stage === 1){
+                    switch(value) {
+                        case 1:
+                        case 2:
+                            $scope.say("Position two");
+                            params.stages['1'].position = 2;
+                            break;
+                        case 3:
+                            $scope.say("Position three");
+                            params.stages['1'].position = 3;
+                            break;
+                        case 4:
+                            $scope.say("Position four");
+                            params.stages['1'].position = 4;
+                    }
+                }
+
+                if(params.stage === 2){
+                    switch(value) {
+                        case 1:
+                            $scope.say("Label four");
+                            params.stages['2'].label = 4;
+                            break;
+                        case 2:
+                        case 4:
+                            $scope.say("Position " + params.stages['1'].position);
+                            params.stages['2'].position = params.stages['1'].position;
+                            break;
+                        case 3:
+                            $scope.say("Position 1");
+                            params.stages['2'].position = 1;
+                            break;
+                    }
+                }
+
+                if(params.stage === 3){
+                    switch(value) {
+                        case 1:
+                            $scope.say("Label " + params.stages['2'].label);
+                            params.stages['3'].label = params.stages['2'].label;
+                            break;
+                        case 2:
+                            $scope.say("Label " + params.stages['1'].label);
+                            params.stages['3'].label = params.stages['1'].label;
+                            break;
+                        case 3:
+                            $scope.say("Position 3");
+                            params.stages['3'].position = 3;
+                            break;
+                        case 4:
+                            $scope.say("Label 4");
+                            params.stages['3'].label = 4;
+                            break;
+
+                    }
+                }
+
+                if(params.stage === 4){
+                    switch(value) {
+                        case 1:
+                            $scope.say("Position " + params.stages['1'].position);
+                            params.stages['4'].position = params.stages['1'].position;
+                            break;
+                        case 2:
+                            $scope.say("Position 1");
+                            params.stages['4'].position = 1;
+                            break;
+                        case 3:
+                        case 4:
+                            $scope.say("Position " + params.stages['2'].position);
+                            params.stages['4'].position = params.stages['2'].position;
+                            break;
+
+                    }
+                }
+
+                if(params.stage === 5){
+                    switch(value) {
+                        case 1:
+                            $scope.say("Label " + params.stages['1'].label);
+                            break;
+                        case 2:
+                            $scope.say("Label " + params.stages['2'].label);
+                            break;
+                        case 3:
+                            $scope.say("Label " + params.stages['4'].label);
+                            break;
+                        case 4:
+                            $scope.say("Label " + params.stages['3'].label);
+                            break;
+                    }
+
+                    finish();
+                }
+
+
+
+
+            };
+
+            var label = function (value) {
+                value = numbers[value];
+                params.stages[params.stage].label = value;
+                $scope.say("Label " + value); // There's a delay before the next one appears, so we can repeat this back
+            };
+
+            var position = function (value) {
+                value = numbers[value];
+                params.stages[params.stage].label = value;
+                $scope.say("Position " + value);
+            };
+
+
+            var finish = function () {
+                $scope.annyang.removeCommands(["memory:display", "memory:label", "memory:position"]);
+                $scope.currentmodule = null;
+            };
+
+
+            $scope.annyang.addCommands({
+                "memory": {
+                    'regexp': /^memory display says (one|1|two|to|too|2|three|four|for|4|3)$/,
+                    'callback': memory
+                }
+            });
+
+
+            return params;
+        }();
 
         // Start listening. You can call this here, or attach this call to an event, button, etc.
         annyang.start({autoRestart: true});
