@@ -11,7 +11,20 @@
 <h2>Todo</h2>
 <div ng-controller="ktaneController">
 
-    {{ currentmodule }}
+    Current module: {{ currentmodule }}<br/>
+
+    Batteries: {{ bombproperties.batteries.value }}<br/>
+    FRK: {{ bombproperties.frk.value }}<br/>
+    CAR: {{ bombproperties.car.value }}<br/>
+    Parallel port: {{ bombproperties.parallelport.value }}<br/>
+    Serial number: Even/odd: {{ bombproperties.serialnumber_evenodd.value }}<br/>
+    Serial number: Vowel: {{ bombproperties.serialnumber_vowel.value }}<br/>
+
+    <hr/>
+
+    <ul>
+        <li ng-repeat="logitem in logitems track by $index">{{ logitem }}</li>
+    </ul>
 
 
 

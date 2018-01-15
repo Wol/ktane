@@ -1,7 +1,27 @@
 angular.module('ktane', [])
-    .controller('ktaneController', function ($scope) {
+    .controller('ktaneController', function ($scope, $q) {
         $scope.phrase = "";
+        $scope.$q = $q;
+        $scope.logitems = [];
 
+        // We have an array of commonly misheard words for numbers here.
+        var numbers = {
+            'zero': 0,
+            'none': 0,
+            'one': 1,
+            'two': 2,
+            'too': 2,
+            'to': 2,
+            '3': 3,
+            'three': 3,
+            'four': 4,
+            'for': 4,
+            '4': 4,
+            'five': 5,
+            '5': 5,
+            'six': 6,
+            '6': 6,
+        };
 
         $scope.annyang = annyang;
         annyang.debug(true);
@@ -16,20 +36,23 @@ angular.module('ktane', [])
             batteries: {
                 value: null,
                 question: "How many batteries are there",
-                response: "(zero|one|two|three|four|five|six)"
+                response: "(zero|none|one|two|too|to|three|four|for|five|six)"
             },
             frk: {value: null, question: "Is there an indicator saying F R K", response: "(yes|no)"},
             car: {value: null, question: "Is there an indicator saying F R K", response: "(yes|no)"},
             parallelport: {value: null, question: "Is there a parallel port", response: "(yes|no)"},
-            serialnumber: {value: null, question: "Is the serial number even or odd", response: "(even|odd)"},
+            serialnumber_evenodd: {value: null, question: "Is the serial number even or odd", response: "(even|odd)"},
+            serialnumber_vowel: {value: null, question: "Does the serial number contain a vowel", response: "(yes|no)"},
         };
 
+        // Returns a promise which gets the value of a property of the bomb. If it knows it already, it'll resolve
+        // instantly, but otherwise it'll ask the user.
         $scope.property = function (propertyname) {
 
             var property = $scope.bombproperties[propertyname];
 
 
-            return new Promise(function (resolve, reject) {
+            return $scope.$q.when( new Promise(function (resolve, reject) {
 
                 var assignProperty = function (value) {
                     $scope.annyang.removeCommands("property");
@@ -53,12 +76,16 @@ angular.module('ktane', [])
                 }
 
 
-            });
+            }));
 
         };
 
         $scope.say = function (string) {
-            console.log(string);
+            $scope.log(string);
+        };
+
+        $scope.log = function (string){
+            $scope.logitems.push(string);
         };
 
         $scope.simplewires = function () {
@@ -67,22 +94,9 @@ angular.module('ktane', [])
                 numberOfWires: null,
             };
 
-
             var simpleWires = function (count) {
-                console.log("Simple wires!" + count);
-                $scope.currentmodule = this.name;
-
-                var numbers = {
-                    '3': 3,
-                    'three': 3,
-                    'four': 4,
-                    'for': 4,
-                    '4': 4,
-                    'five': 5,
-                    '5': 5,
-                    'six': 6,
-                    '6': 6,
-                };
+                $scope.log("Simple wires!" + count);
+                $scope.currentmodule = name;
 
                 params.numberOfWires = numbers[count];
 
@@ -96,7 +110,7 @@ angular.module('ktane', [])
             };
 
             var wireColours = function (c1, c2, c3, c4, c5, c6) {
-                console.log("Colours: " + c1 + c2 + c3 + c4 + c5 + c6);
+                $scope.log("Colours: ");
 
                 var arguments = _.filter(arguments);
 
@@ -110,6 +124,7 @@ angular.module('ktane', [])
 
                 _.each(arguments, function (val) {
                     counts[val]++;
+                    $scope.log(val);
                 });
 
                 if (params.numberOfWires === 3 && arguments.length === 3) {
@@ -129,19 +144,37 @@ angular.module('ktane', [])
 
                 if (params.numberOfWires === 4 && arguments.length === 4) {
 
-                    $scope.property("serialnumber").then(function (serialnumber) {
-                        if(counts.red > 1 && serialnumber === "odd"){
-                            $scope.say("Cut the last red wire");
-                        }else if(counts.red === 0 && c4 === "yellow"){
+                    var stage2 = function(){
+                        if(counts.red === 0 && c4 === "yellow"){
                             $scope.say("Cut the first wire");
+                            finish();
                         }else if(counts.blue === 1){
                             $scope.say("Cut the first wire");
+                            finish();
                         }else if(counts.yellow > 2){
                             $scope.say("Cut the last wire");
+                            finish();
                         }else{
                             $scope.say("Cut the second wire");
+                            finish();
                         }
-                    });
+                    };
+
+
+                    // Check to see if the count of reds is more than 1, and if so, ask what the serial number is.
+                    if(counts.red > 1){
+                        $scope.property("serialnumber_evenodd").then(function (serialnumber) {
+                            if (serialnumber === "odd") {
+                                $scope.say("Cut the last red wire");
+                                finish();
+                            } else {
+                                stage2();
+                            }
+                        });
+                    }else{
+                        stage2();
+                    }
+
 
 
                 }
@@ -184,7 +217,7 @@ angular.module('ktane', [])
                 return this;
             },
             buttons: function (colour, word) {
-                console.log("Button. Colour: " + colour + " word: " + word);
+                $scope.log("Button. Colour: " + colour + " word: " + word);
                 $scope.currentmodule = this.name;
 
 
@@ -193,7 +226,7 @@ angular.module('ktane', [])
 
             },
             wireColours: function (c1, c2, c3, c4, c5, c6) {
-                console.log("Colours: " + c1 + c2 + c3 + c4 + c5 + c6);
+                $scope.log("Colours: " + c1 + c2 + c3 + c4 + c5 + c6);
             },
 
             finish: function () {
