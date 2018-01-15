@@ -1,5 +1,5 @@
 <!doctype html>
-<html ng-app="todoApp">
+<html ng-app="ktane">
 <head>
     <script src="js/angular.min.js"></script>
     <script src="js/lodash.js"></script>
@@ -9,12 +9,20 @@
 </head>
 <body>
 <h2>Todo</h2>
-<div ng-controller="TodoListController as todoList">
-    <form ng-submit="todoList.addTodo()">
-        <input type="text" ng-model="todoList.todoText"  size="30"
-               placeholder="add new todo here">
-        <input class="btn-primary" type="submit" value="add">
-    </form>
+<div ng-controller="ktaneController">
+
+    {{ currentmodule }}
+
+
+
+    <div>
+        <form ng-submit="simulateSpeech()">
+            <input type="text" ng-model="phrase"  size="30"
+                   placeholder="add new todo here">
+            <input class="btn-primary" type="submit" value="add">
+        </form>
+    </div>
+
 </div>
 </body>
 </html>
