@@ -56,13 +56,13 @@ angular.module('ktane', [])
             var property = $scope.bombproperties[propertyname];
 
 
-            return $scope.$q.when( new Promise(function (resolve, reject) {
+            return $scope.$q.when(new Promise(function (resolve, reject) {
 
                 var assignProperty = function (value) {
                     $scope.annyang.removeCommands("property");
-                    if(property.remap){
+                    if (property.remap) {
                         property.value = property.remap[value];
-                    }else {
+                    } else {
                         property.value = value;
                     }
                     resolve(property.value);
@@ -92,7 +92,7 @@ angular.module('ktane', [])
             $scope.log(string);
         };
 
-        $scope.log = function (string){
+        $scope.log = function (string) {
             $scope.logitems.push(string);
         };
 
@@ -152,17 +152,17 @@ angular.module('ktane', [])
 
                 if (params.numberOfWires === 4 && arguments.length === 4) {
 
-                    var stage2 = function(){
-                        if(counts.red === 0 && c4 === "yellow"){
+                    var stage2 = function () {
+                        if (counts.red === 0 && c4 === "yellow") {
                             $scope.say("Cut the first wire");
                             finish();
-                        }else if(counts.blue === 1){
+                        } else if (counts.blue === 1) {
                             $scope.say("Cut the first wire");
                             finish();
-                        }else if(counts.yellow > 1){
+                        } else if (counts.yellow > 1) {
                             $scope.say("Cut the last wire");
                             finish();
-                        }else{
+                        } else {
                             $scope.say("Cut the second wire");
                             finish();
                         }
@@ -170,7 +170,7 @@ angular.module('ktane', [])
 
 
                     // Check to see if the count of reds is more than 1, and if so, ask what the serial number is.
-                    if(counts.red > 1){
+                    if (counts.red > 1) {
                         $scope.property("serialnumber_evenodd").then(function (serialnumber) {
                             if (serialnumber === "odd") {
                                 $scope.say("Cut the last red wire");
@@ -179,7 +179,7 @@ angular.module('ktane', [])
                                 stage2();
                             }
                         });
-                    }else{
+                    } else {
                         stage2();
                     }
 
@@ -187,22 +187,21 @@ angular.module('ktane', [])
 
                 if (params.numberOfWires === 5 && arguments.length === 5) {
 
-                    var stage2 = function(){
-                        if(counts.red === 1 && counts.yellow > 1){
+                    var stage2 = function () {
+                        if (counts.red === 1 && counts.yellow > 1) {
                             $scope.say("Cut the first wire");
                             finish();
-                        }else if(counts.black === 0) {
+                        } else if (counts.black === 0) {
                             $scope.say("Cut the second wire");
                             finish();
-                        }else{
+                        } else {
                             $scope.say("Cut the first wire");
                             finish();
                         }
                     };
 
 
-
-                    if(c5 === "black"){
+                    if (c5 === "black") {
                         $scope.property("serialnumber_evenodd").then(function (serialnumber) {
                             if (serialnumber === "odd") {
                                 $scope.say("Cut the fourth wire");
@@ -211,29 +210,28 @@ angular.module('ktane', [])
                                 stage2();
                             }
                         });
-                    }else{
+                    } else {
                         stage2();
                     }
 
                 }
 
                 if (params.numberOfWires === 6 && arguments.length === 6) {
-                    var stage2 = function(){
-                        if(counts.yellow === 1 && counts.white > 1){
+                    var stage2 = function () {
+                        if (counts.yellow === 1 && counts.white > 1) {
                             $scope.say("Cut the fourth wire");
                             finish();
-                        }else if(counts.red === 0) {
+                        } else if (counts.red === 0) {
                             $scope.say("Cut the last wire");
                             finish();
-                        }else{
+                        } else {
                             $scope.say("Cut the fourth wire");
                             finish();
                         }
                     };
 
 
-
-                    if(counts.yellow === 0){
+                    if (counts.yellow === 0) {
                         $scope.property("serialnumber_evenodd").then(function (serialnumber) {
                             if (serialnumber === "odd") {
                                 $scope.say("Cut the third wire");
@@ -242,7 +240,7 @@ angular.module('ktane', [])
                                 stage2();
                             }
                         });
-                    }else{
+                    } else {
                         stage2();
                     }
 
@@ -279,7 +277,7 @@ angular.module('ktane', [])
                 params.colour = colour;
                 params.word = word;
 
-                if(word === "detonate"){
+                if (word === "detonate") {
                     $scope.property("batteries").then(function (batterycount) {
                         if (batterycount > 1) {
                             pressandrelease();
@@ -288,7 +286,7 @@ angular.module('ktane', [])
                         }
                     });
                 }
-                if(colour === "white"){
+                if (colour === "white") {
                     $scope.property("car").then(function (car) {
                         if (car === "yes") {
                             holdandchecklight();
@@ -298,11 +296,11 @@ angular.module('ktane', [])
                     });
                 }
 
-                if(colour === "red" && word === "hold"){
+                if (colour === "red" && word === "hold") {
                     pressandrelease();
                 }
 
-                if(colour === "blue" && word === "abort"){
+                if (colour === "blue" && word === "abort") {
                     holdandchecklight();
                 }
 
@@ -310,13 +308,13 @@ angular.module('ktane', [])
 
             };
 
-            var pressandrelease = function(){
+            var pressandrelease = function () {
                 $scope.say("Press and release the button");
                 finish();
             };
 
 
-            var holdandchecklight = function() {
+            var holdandchecklight = function () {
                 $scope.say("Press and hold the button");
 
                 $scope.annyang.addCommands({
@@ -328,19 +326,19 @@ angular.module('ktane', [])
 
             };
 
-            var heldcolour = function(colour){
+            var heldcolour = function (colour) {
                 params.heldcolour = colour;
-                if(colour === "blue"){
+                if (colour === "blue") {
                     $scope.say("Release when timer has 4");
-                }else if(colour === "yellow"){
+                } else if (colour === "yellow") {
                     $scope.say("Release when timer has 5");
-                }else{
+                } else {
                     $scope.say("Release when timer has 1");
                 }
                 finish();
             };
 
-            var checkfrk = function(){
+            var checkfrk = function () {
                 $scope.property("batteries").then(function (batterycount) {
                     if (batterycount > 2) {
                         $scope.property("frk").then(function (frk) {
@@ -393,20 +391,20 @@ angular.module('ktane', [])
             var selectedmaze = null;
 
             // Converts the 'top/left' only values into a top/left/bottom/right value
-            var tl2tlbr = function(maze){
+            var tl2tlbr = function (maze) {
                 var i, j;
 
-                for(i = 0; i < 6; i++){
-                    for(j = 0; j < 6; j++){
-                        if(i === 5 || (maze[i + 1][j] & 1)){ // If we're at the bottom, or if the next row down has the 'top' bit set
+                for (i = 0; i < 6; i++) {
+                    for (j = 0; j < 6; j++) {
+                        if (i === 5 || (maze[i + 1][j] & 1)) { // If we're at the bottom, or if the next row down has the 'top' bit set
                             maze[i][j] |= 4; // then set the 'bottom' bit on this row
                         }
                     }
                 }
 
-                for(j = 0; j < 6; j++){
-                    for(i = 0; i < 6; i++){
-                        if(j === 5 || (maze[i][j+1] & 2)){ // If we're at the right, or if the next column across has the 'left' bit set
+                for (j = 0; j < 6; j++) {
+                    for (i = 0; i < 6; i++) {
+                        if (j === 5 || (maze[i][j + 1] & 2)) { // If we're at the right, or if the next column across has the 'left' bit set
                             maze[i][j] |= 8; // then set the 'bottom' bit on this row
                         }
                     }
@@ -465,7 +463,7 @@ angular.module('ktane', [])
 
             };
 
-            var currentposition = function(x, y){
+            var currentposition = function (x, y) {
                 x = numbers[x];
                 y = numbers[y];
 
@@ -487,7 +485,7 @@ angular.module('ktane', [])
 
             var visited = null;
 
-            var target = function(x, y){
+            var target = function (x, y) {
 
                 $scope.annyang.removeCommands("maze:target");
 
@@ -533,7 +531,7 @@ angular.module('ktane', [])
                     var _x = currentLocation._x;
 
 
-                    if(params.targetposition[0] === _x && params.targetposition[1] === _y){
+                    if (params.targetposition[0] === _x && params.targetposition[1] === _y) {
                         location = currentLocation;
                         break;
                     }
@@ -541,13 +539,13 @@ angular.module('ktane', [])
                     visited[_y][_x] = 1;
 
 
-                    _.each(directions, function(direction){
+                    _.each(directions, function (direction) {
                         var newPath = currentLocation.path.slice();
                         newPath.push(direction.label); // Textual description of this current path.
 
                         // If we can transition in the direction we want to go, and we've not visited that cell, add it to the queue
-                        if((selectedmaze[_y][_x] & direction.bit) === 0 && visited[_y + direction.dy][_x + direction.dx] === 0) {
-                            queue.push( {
+                        if ((selectedmaze[_y][_x] & direction.bit) === 0 && visited[_y + direction.dy][_x + direction.dx] === 0) {
+                            queue.push({
                                 _x: _x + direction.dx,
                                 _y: _y + direction.dy,
                                 path: newPath,
@@ -621,7 +619,7 @@ angular.module('ktane', [])
 
 
                 // Grab the first letter of each word and load it into the array
-                _.each(words, function(word){
+                _.each(words, function (word) {
                     word = word.toUpperCase();
                     params.letters[position] += word[0];
                 });
@@ -630,10 +628,10 @@ angular.module('ktane', [])
                 // check to see if this matches anything yet.
                 // Build a regex string to match each character in turn if we know it by generating character classes
                 var regexstring = "";
-                _.each(params.letters,function(value){
-                    if(value === ""){
+                _.each(params.letters, function (value) {
+                    if (value === "") {
                         regexstring += ".";
-                    }else{
+                    } else {
                         regexstring += ("[" + value + "]");
                     }
                 });
@@ -642,13 +640,13 @@ angular.module('ktane', [])
                 var matches = possiblewords.match(new RegExp(regexstring, "g"));
 
                 // If we only have two matches, just read them now. It'll either be THING or THINK
-                if(matches.length === 2){
+                if (matches.length === 2) {
                     $scope.say("Word is either " + matches.join(" or "));
                     finish();
-                }else if(matches.length === 1){
+                } else if (matches.length === 1) {
                     $scope.say("Word is " + matches[0]);
                     finish();
-                }else{
+                } else {
                     $scope.say("More letters needed");
                 }
 
@@ -703,15 +701,15 @@ angular.module('ktane', [])
 
             var wire = function (colour, position) {
 
-                if(colour === "done"){
+                if (colour === "done") {
                     finish();
                     return;
                 }
                 position = position.toUpperCase()[0];
 
-                if(definition[colour][params.counts[colour]].includes(position)){
+                if (definition[colour][params.counts[colour]].includes(position)) {
                     $scope.say("Cut");
-                }else{
+                } else {
                     $scope.say("Do not cut");
                 }
 
@@ -780,8 +778,8 @@ angular.module('ktane', [])
                 value = numbers[value];
                 params.stage++; // Increase the stage number
 
-                if(params.stage === 1){
-                    switch(value) {
+                if (params.stage === 1) {
+                    switch (value) {
                         case 1:
                         case 2:
                             $scope.say("Position two");
@@ -797,8 +795,8 @@ angular.module('ktane', [])
                     }
                 }
 
-                if(params.stage === 2){
-                    switch(value) {
+                if (params.stage === 2) {
+                    switch (value) {
                         case 1:
                             $scope.say("Label four");
                             params.stages['2'].label = 4;
@@ -815,8 +813,8 @@ angular.module('ktane', [])
                     }
                 }
 
-                if(params.stage === 3){
-                    switch(value) {
+                if (params.stage === 3) {
+                    switch (value) {
                         case 1:
                             $scope.say("Label " + params.stages['2'].label);
                             params.stages['3'].label = params.stages['2'].label;
@@ -837,8 +835,8 @@ angular.module('ktane', [])
                     }
                 }
 
-                if(params.stage === 4){
-                    switch(value) {
+                if (params.stage === 4) {
+                    switch (value) {
                         case 1:
                             $scope.say("Position " + params.stages['1'].position);
                             params.stages['4'].position = params.stages['1'].position;
@@ -856,8 +854,8 @@ angular.module('ktane', [])
                     }
                 }
 
-                if(params.stage === 5){
-                    switch(value) {
+                if (params.stage === 5) {
+                    switch (value) {
                         case 1:
                             $scope.say("Label " + params.stages['1'].label);
                             break;
@@ -874,8 +872,6 @@ angular.module('ktane', [])
 
                     finish();
                 }
-
-
 
 
             };
@@ -909,6 +905,108 @@ angular.module('ktane', [])
 
             return params;
         }();
+
+
+        // TODO: Keypads
+
+        // TODO: Simon Says
+
+        // TODO: Who's on first
+
+        // TODO: Morse Code
+
+        // TODO: Complicated Wires
+        $scope.complicatedwires = function () {
+            var name = "complicatedwires";
+            var params = {};
+
+
+            var complicatedwires = function (count) {
+                $scope.log("Complicated wires");
+                $scope.currentmodule = name;
+
+
+                $scope.annyang.addCommands({
+                    "complicatedwires:wire": {
+                        'regexp': /^(?=.*?\b(white|red and blue|blue and red|red|blue)\b)(?=.*?\b(no light|light)\b)(?=.*?\b(no star|star*)\b).*$/,
+                        'callback': wire
+                    },
+                    "complicatedwires:done": {
+                        'regexp': /^done$/,
+                        'callback': finish
+                    }
+                });
+
+            };
+
+            var wire = function (colour, light, star) {
+
+                var red = colour.includes("red");
+                var blue = colour.includes("blue");
+                var light = !light.includes("no");
+                var star = !star.includes("no");
+
+
+                if ((red === false && blue === false && light === false) ||
+                    (red === true && blue === false && star === true && light === false)) {
+                    $scope.say("Cut the wire");
+                } else if ((red === false && blue === false && star === false && light === true) ||
+                    (red === false && blue === true && star === true && light === false) ||
+                    (red === true && blue === true && star === true && light === true)) {
+                    $scope.say("Do not cut the wire");
+                } else if ((red === false && blue === false && star === true && light === true) ||
+                    (red === true && blue === false && light === true)) {
+                    $scope.property("batteries").then(function (batterycount) {
+                        if (batterycount >= 2) {
+                            $scope.say("Cut the wire");
+                        } else {
+                            $scope.say("Do not cut the wire");
+                        }
+                    });
+
+                } else if ((red === true && blue === true && star === true && light === false) ||
+                    (red === false && blue === true && light === true)) {
+                    // Cut if parallel port
+                    $scope.property("parallel").then(function (parallel) {
+                        if (parallel === "yes") {
+                            $scope.say("Cut the wire");
+                        } else {
+                            $scope.say("Do not cut the wire");
+                        }
+                    });
+                } else
+                // In theory everything else should now be this option.....
+                if ((red === true && blue === true && star === false && light === true) ||
+                    ((red === true || blue === true) && star === false && light === false)) {
+                    // Cut if serial number even
+                    $scope.property("serialnumber_evenodd").then(function (evenodd) {
+                        if (evenodd === "even") {
+                            $scope.say("Cut the wire");
+                        } else {
+                            $scope.say("Do not cut the wire");
+                        }
+                    });
+                }
+
+            };
+
+            var finish = function () {
+                $scope.annyang.removeCommands(["complicatedwires:wire","complicatedwires:done"]);
+                $scope.currentmodule = null;
+            };
+
+
+            $scope.annyang.addCommands({
+                "complicatedwires": {
+                    'regexp': /^complicated wires$/,
+                    'callback': complicatedwires
+                }
+            });
+
+
+            return params;
+        }();
+
 
         // Start listening. You can call this here, or attach this call to an event, button, etc.
         annyang.start({autoRestart: true});
