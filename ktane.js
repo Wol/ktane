@@ -532,6 +532,159 @@ angular.module('ktane', [])
         }();
 
 
+        $scope.password = function () {
+            var name = "password";
+            var params = {
+                letters: {
+                    'first': "",
+                    'second': "",
+                    'third': "",
+                    'fourth': "",
+                    'fifth': "",
+                }
+            };
+
+            var possiblewords = "ABOUT AFTER AGAIN BELOW COULD EVERY FIRST FOUND GREAT HOUSE LARGE LEARN NEVER OTHER PLACE PLANT POINT RIGHT SMALL SOUND SPELL STILL STUDY THEIR THERE THESE THING THINK THREE WATER WHERE WHICH WORLD WOULD WRITE ";
+
+            var password = function (count) {
+                $scope.log("Password");
+                $scope.currentmodule = name;
+
+
+                $scope.annyang.addCommands({
+                    "password:letter": {
+                        'regexp': /^(first|second|third|fourth|fifth) letter (\w+) (\w+) (\w+) (\w+) (\w+)$/,
+                        'callback': letter
+                    }
+                });
+
+            };
+
+            var letter = function (position) {
+
+                var words = Array.prototype.slice.call(arguments, 1);
+
+
+                $scope.log("Words for " + position + " character were " + words.join(" "));
+
+
+                // Grab the first letter of each word and load it into the array
+                _.each(words, function(word){
+                    word = word.toUpperCase();
+                    params.letters[position] += word[0];
+                });
+
+
+                // check to see if this matches anything yet.
+                // Build a regex string to match each character in turn if we know it by generating character classes
+                var regexstring = "";
+                _.each(params.letters,function(value){
+                    if(value === ""){
+                        regexstring += ".";
+                    }else{
+                        regexstring += ("[" + value + "]");
+                    }
+                });
+                regexstring += " ";
+
+                var matches = possiblewords.match(new RegExp(regexstring, "g"));
+
+                // If we only have two matches, just read them now. It'll either be THING or THINK
+                if(matches.length === 2){
+                    $scope.say("Word is either " + matches.join(" or "));
+                    finish();
+                }else if(matches.length === 1){
+                    $scope.say("Word is " + matches[0]);
+                    finish();
+                }else{
+                    $scope.say("More letters needed");
+                }
+
+            };
+
+            var finish = function () {
+                $scope.annyang.removeCommands("password:letter");
+                $scope.currentmodule = null;
+            };
+
+
+            $scope.annyang.addCommands({
+                "password": {
+                    'regexp': /^password$/,
+                    'callback': password
+                }
+            });
+
+
+            return params;
+        }();
+
+        $scope.wiresequence = function () {
+            var name = "wiresequence";
+            var params = {
+                counts: {
+                    'red': 0,
+                    'blue': 0,
+                    'black': 0,
+                }
+            };
+
+            var definition = {
+                red: ['C', 'B', 'A', 'AC', 'B', 'AC', 'ABC', 'AB', 'B'],
+                blue: ['B', 'AC', 'B', 'A', 'B', "BC", "C", "AC", "A"],
+                black: ["ABC", "AC", "B", "AC", "B", "BC", "AB", "C", "C"],
+            };
+
+            var wiresequence = function (count) {
+                $scope.log("Wire Sequence");
+                $scope.currentmodule = name;
+
+
+                $scope.annyang.addCommands({
+                    "wiresequence:letter": {
+                        'regexp': /^(red|blue|black|done) (\w+)$/,
+                        'callback': wire
+                    }
+                });
+
+            };
+
+            var wire = function (colour, position) {
+
+                if(colour === "done"){
+                    finish();
+                    return;
+                }
+                position = position.toUpperCase()[0];
+
+                if(definition[colour][params.counts[colour]].includes(position)){
+                    $scope.say("Cut");
+                }else{
+                    $scope.say("Do not cut");
+                }
+
+                params.counts[colour]++;
+
+            };
+
+            var finish = function () {
+                $scope.annyang.removeCommands("wiresequence:wire");
+                $scope.currentmodule = null;
+            };
+
+
+            $scope.annyang.addCommands({
+                "wiresequence": {
+                    'regexp': /^wire sequence$/,
+                    'callback': wiresequence
+                }
+            });
+
+
+            return params;
+        }();
+
+
         // Start listening. You can call this here, or attach this call to an event, button, etc.
         annyang.start({autoRestart: true});
 
