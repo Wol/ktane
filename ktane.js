@@ -38,6 +38,16 @@ angular.module('ktane', [])
         $scope.logitems = [];
         $scope.annyang = AnnyangService;
 
+        var homonyms = {
+            'SEE': 'C',
+            'SEA': 'C',
+            'EYE': 'I',
+            'ARE': 'R',
+            'YOU': 'U',
+            'EGGS': 'X',
+            'WHY': 'Y',
+        };
+
         // We have an array of commonly misheard words for numbers here.
         var numbers = {
             '0': 0,
@@ -120,8 +130,37 @@ angular.module('ktane', [])
 
         };
 
-        $scope.say = function (string) {
+        $scope.say = function (string, rate) {
+
+            var selectedvoice = null;
+            var voices = speechSynthesis.getVoices();
+            console.log("Voices" + voices);
+            voices.forEach(function(voice, i) {
+                if(voice.name === "Google UK English Female"){
+                    selectedvoice = voice;
+                }
+            });
+            console.log("selected voice" + selectedvoice);
+
             $scope.log(string);
+
+            // Create a new instance of SpeechSynthesisUtterance.
+            var msg = new SpeechSynthesisUtterance();
+
+            // Set the text.
+            msg.text = string;
+
+            if(rate !== undefined) {
+                msg.rate = parseFloat(rate);
+            }
+
+            if(selectedvoice === null){
+                return;
+            }
+            msg.voice = selectedvoice;
+
+            window.speechSynthesis.speak(msg);
+
         };
 
         $scope.log = function (string) {
@@ -138,7 +177,11 @@ angular.module('ktane', [])
                 $scope.log("Simple wires!" + count);
                 $scope.currentmodule = name;
 
-                params.numberOfWires = numbers[count];
+                if(count !== undefined) {
+                    params.numberOfWires = numbers[count];
+                }else{
+                    params.numberOfWires = null;
+                }
 
                 $scope.annyang.addCommands({
                     "simplewires:colours": {
@@ -146,6 +189,8 @@ angular.module('ktane', [])
                         'callback': wireColours
                     }
                 });
+
+                $scope.say("Colours?")
 
             };
 
@@ -161,6 +206,10 @@ angular.module('ktane', [])
                     yellow: 0,
                     white: 0,
                 };
+
+                if(params.numberOfWires === null){
+                    params.numberOfWires = arguments.length;
+                }
 
                 _.each(arguments, function (val) {
                     counts[val]++;
@@ -292,6 +341,14 @@ angular.module('ktane', [])
                 }
             });
 
+            $scope.annyang.addCommands({
+                "simple wires": {
+                    'regexp': /^simple wires$/,
+                    'callback': simpleWires
+                }
+            });
+
+
 
             return params;
         }();
@@ -411,6 +468,8 @@ angular.module('ktane', [])
             var params = {
                 startingposition: [null, null],
                 targetposition: [null, null],
+                selectedmaze: null,
+                selectedmazeid: null,
             };
 
             // top = 1
@@ -420,7 +479,6 @@ angular.module('ktane', [])
 
             // topleft = 3
 
-            var selectedmaze = null;
 
             // Converts the 'top/left' only values into a top/left/bottom/right value
             var tl2tlbr = function (maze) {
@@ -522,24 +580,24 @@ angular.module('ktane', [])
             };
 
             var mazemarkers = {
-                12: mazes.a,
-                63: mazes.a,
-                24: mazes.b,
-                52: mazes.b,
-                44: mazes.c,
-                64: mazes.c,
-                11: mazes.d,
-                14: mazes.d,
-                53: mazes.e,
-                46: mazes.e,
-                35: mazes.f,
-                51: mazes.f,
-                21: mazes.g,
-                26: mazes.g,
-                34: mazes.h,
-                41: mazes.h,
-                32: mazes.i,
-                15: mazes.i,
+                12: "a",
+                63: "a",
+                24: "b",
+                52: "b",
+                44: "c",
+                64: "c",
+                11: "d",
+                14: "d",
+                53: "e",
+                46: "e",
+                35: "f",
+                51: "f",
+                21: "g",
+                26: "g",
+                34: "h",
+                41: "h",
+                32: "i",
+                15: "i",
             };
 
             var maze = function (x, y) {
@@ -548,13 +606,36 @@ angular.module('ktane', [])
                 $scope.log("Maze");
                 $scope.currentmodule = name;
 
+                if(x === undefined && y === undefined){
+                    $scope.say("Give the coordinates of a green circle");
+                    params.selectedmaze = null;
+
+                    $scope.annyang.addCommands({
+                        "maze:markerposition": {
+                            'regexp': /^(one|two|too|to|three|four|for|1|2|4|3|5|6|five|six) (one|two|too|to|three|four|for|1|2|4|3|5|6|five|six)$/,
+                            'callback': maze
+                        }
+                    });
+
+                    return;
+                }
+
+
                 x = numbers[x];
                 y = numbers[y];
 
-                selectedmaze = mazemarkers[(x * 10) + y];
+                params.selectedmazeid = mazemarkers[(x * 10) + y];
 
-                $scope.say("Starting position");
+                if(params.selectedmazeid === undefined){
+                    $scope.say("This is an invalid marker. Coordinates from top left, x first, then y.");
+                    params.selectedmaze = null;
+                    return;
+                }
 
+                params.selectedmaze = mazes[params.selectedmazeid];
+
+                $scope.say("Starting position?");
+                $scope.annyang.removeCommands("maze:markerposition");
                 $scope.annyang.addCommands({
                     "maze:startingposition": {
                         'regexp': /^(one|two|too|to|three|four|for|1|2|4|3|5|6|five|six) (one|two|too|to|three|four|for|1|2|4|3|5|6|five|six)$/,
@@ -571,7 +652,7 @@ angular.module('ktane', [])
                 params.startingposition = [x - 1, y - 1];
 
                 $scope.annyang.removeCommands("maze:startingposition");
-                $scope.say("Target");
+                $scope.say("Target?");
 
                 $scope.annyang.addCommands({
                     "maze:target": {
@@ -624,6 +705,7 @@ angular.module('ktane', [])
                     {label: 'right', dy: 0, dx: 1, bit: 8},
                 ];
 
+                // Whilst there are still squares to check....
                 while (queue.length > 0) {
                     // Take the first location off the queue
                     var currentLocation = queue.shift();
@@ -631,7 +713,7 @@ angular.module('ktane', [])
                     var _y = currentLocation._y;
                     var _x = currentLocation._x;
 
-
+                    // Have we hit the target point.
                     if (params.targetposition[0] === _x && params.targetposition[1] === _y) {
                         location = currentLocation;
                         break;
@@ -639,13 +721,13 @@ angular.module('ktane', [])
 
                     visited[_y][_x] = 1;
 
-
+                    // For each of the directions, test to see if this is a valid move.
                     _.each(directions, function (direction) {
                         var newPath = currentLocation.path.slice();
                         newPath.push(direction.label); // Textual description of this current path.
 
                         // If we can transition in the direction we want to go, and we've not visited that cell, add it to the queue
-                        if ((selectedmaze[_y][_x] & direction.bit) === 0 && visited[_y + direction.dy][_x + direction.dx] === 0) {
+                        if ((params.selectedmaze[_y][_x] & direction.bit) === 0 && visited[_y + direction.dy][_x + direction.dx] === 0) {
                             queue.push({
                                 _x: _x + direction.dx,
                                 _y: _y + direction.dy,
@@ -660,7 +742,7 @@ angular.module('ktane', [])
                 } // end while
 
 
-                $scope.say(currentLocation.path.join(" "));
+                $scope.say(currentLocation.path.join(". "), 0.7);
 
                 finish();
             };
@@ -672,8 +754,15 @@ angular.module('ktane', [])
 
 
             $scope.annyang.addCommands({
-                "maze": {
+                "maze:marker": {
                     'regexp': /^maze (one|two|too|to|three|four|for|1|2|4|3|5|6|five|six) (one|two|too|to|three|four|for|1|2|4|3|5|6|five|six)$/,
+                    'callback': maze
+                }
+            });
+
+            $scope.annyang.addCommands({
+                "maze": {
+                    'regexp': /^maze$/,
                     'callback': maze
                 }
             });
@@ -697,11 +786,21 @@ angular.module('ktane', [])
 
             var possiblewords = "ABOUT AFTER AGAIN BELOW COULD EVERY FIRST FOUND GREAT HOUSE LARGE LEARN NEVER OTHER PLACE PLANT POINT RIGHT SMALL SOUND SPELL STILL STUDY THEIR THERE THESE THING THINK THREE WATER WHERE WHICH WORLD WOULD WRITE ";
 
-            var password = function (count) {
+            var password = function () {
                 $scope.log("Password");
                 $scope.currentmodule = name;
 
 
+                params.letters = {
+                    'first': "",
+                    'second': "",
+                    'third': "",
+                    'fourth': "",
+                    'fifth': "",
+                };
+
+
+                $scope.say("Please give letters for first, third and fourth positions.");
                 $scope.annyang.addCommands({
                     "password:letter": {
                         'regexp': /^(first|second|third|fourth|fifth) letter (\w+) (\w+) (\w+) (\w+) (\w+)$/,
@@ -722,7 +821,11 @@ angular.module('ktane', [])
                 // Grab the first letter of each word and load it into the array
                 _.each(words, function (word) {
                     word = word.toUpperCase();
-                    params.letters[position] += word[0];
+                    if(homonyms[word] !== undefined){
+                        params.letters[position] += homonyms[word];
+                    }else {
+                        params.letters[position] += word[0];
+                    }
                 });
 
 
@@ -741,8 +844,13 @@ angular.module('ktane', [])
                 var matches = possiblewords.match(new RegExp(regexstring, "g"));
 
                 // If we only have two matches, just read them now. It'll either be THING or THINK
+                if(matches === null){
+                    $scope.say("No words matched. Please try again");
+                    password();
+                    return;
+                }
                 if (matches.length === 2) {
-                    $scope.say("Word is either " + matches.join(" or "));
+                    $scope.say("Word is either " + matches[0] + ". Or " + matches[1] + ".");
                     finish();
                 } else if (matches.length === 1) {
                     $scope.say("Word is " + matches[0]);
@@ -790,11 +898,16 @@ angular.module('ktane', [])
                 $scope.log("Wire Sequence");
                 $scope.currentmodule = name;
 
+                $scope.say("List colour and letter");
 
                 $scope.annyang.addCommands({
-                    "wiresequence:letter": {
-                        'regexp': /^(red|blue|black|done) (\w+)$/,
+                    "wiresequence:wire": {
+                        'regexp': /^(red|blue|black) (\w+)$/,
                         'callback': wire
+                    },
+                    "wiresequence:done": {
+                        'regexp': /^done$/,
+                        'callback': finish
                     }
                 });
 
@@ -819,7 +932,7 @@ angular.module('ktane', [])
             };
 
             var finish = function () {
-                $scope.annyang.removeCommands("wiresequence:wire");
+                $scope.annyang.removeCommands(["wiresequence:wire", "wiresequence:done"]);
                 $scope.currentmodule = null;
             };
 
@@ -853,6 +966,14 @@ angular.module('ktane', [])
                 $scope.log("Memory");
                 $scope.currentmodule = name;
 
+                params.stage = 0;
+                params.stages = {
+                    1: {"position": null, "label": null},
+                    2: {"position": null, "label": null},
+                    3: {"position": null, "label": null},
+                    4: {"position": null, "label": null},
+                    5: {"position": null, "label": null},
+                };
 
                 $scope.annyang.addCommands({
                     "memory:display": {
@@ -870,11 +991,23 @@ angular.module('ktane', [])
 
                 });
 
-                display(value);
+                if(value === undefined){
+                    $scope.say("Display says?");
+                    $scope.annyang.addCommands({
+                        "memory:singledisplay": {
+                            'regexp': /^(one|1|two|to|too|2|three|four|for|4|3)$/,
+                            'callback': display
+                        }
+                    });
+                }else{
+                    display(value);
+                }
 
             };
 
             var display = function (value) {
+
+                $scope.annyang.removeCommands("memory:singledisplay");
 
                 value = numbers[value];
                 params.stage++; // Increase the stage number
@@ -980,13 +1113,13 @@ angular.module('ktane', [])
             var label = function (value) {
                 value = numbers[value];
                 params.stages[params.stage].label = value;
-                $scope.say("Label " + value); // There's a delay before the next one appears, so we can repeat this back
+                $scope.say("OK"); // There's a delay before the next one appears, so we can repeat this back
             };
 
             var position = function (value) {
                 value = numbers[value];
                 params.stages[params.stage].label = value;
-                $scope.say("Position " + value);
+                $scope.say("OK");
             };
 
 
@@ -998,6 +1131,10 @@ angular.module('ktane', [])
 
             $scope.annyang.addCommands({
                 "memory": {
+                    'regexp': /^memory$/,
+                    'callback': memory
+                },
+                "memory:display": {
                     'regexp': /^memory display says (one|1|two|to|too|2|three|four|for|4|3)$/,
                     'callback': memory
                 }
@@ -1021,6 +1158,7 @@ angular.module('ktane', [])
                 $scope.log("Complicated wires");
                 $scope.currentmodule = name;
 
+                $scope.say("Complicated wires");
 
                 $scope.annyang.addCommands({
                     "complicatedwires:wire": {
@@ -1116,12 +1254,96 @@ angular.module('ktane', [])
         // TODO: Who's on first
         $scope.whosonfirst = function () {
             var name = "whosonfirst";
-            var params = {};
+            var params = {
+                displayword: null,
+                buttonword: null,
+                position: null,
+                answer: null,
+            };
+
+            var wordmapping = {
+                'YES' : 'ml',
+                'FIRST': 'tr',
+                'DISPLAY': 'br',
+                'OKAY' : 'tr',
+                'SAYS' : 'br',
+                'NOTHING' : 'ml',
+                '' : 'bl',
+                'BLANK' : 'mr',
+                'NO' : 'br',
+                'LED' : 'ml',
+                'LEAD' : 'br',
+                'READ' : 'mr',
+                'RED' : 'mr',
+                'REED' : 'bl',
+                'LEED' : 'bl',
+                'HOLD ON' : 'br',
+                'YOU' : 'mr',
+                'YOU ARE' : 'br',
+                'YOUR' : 'mr',
+                "YOU'RE" : 'mr',
+                'UR' : 'tl',
+                'THERE' : 'br',
+                "THEY'RE" : 'bl',
+                'THEIR' : 'mr',
+                'THEY ARE' : 'ml',
+                'SEE' : 'br',
+                'C' : 'tr',
+                'CEE': 'br',
+            };
+
+            var buttonpositions = {
+              'br': "Bottom right",
+              'mr': "Middle right",
+              'tr': "Top right",
+              'bl': "Bottom left",
+              'ml': "Middle left",
+              'tl': "Top left",
+            };
+
+            var answers = {
+                "BLANK": "WAIT, RIGHT, OKAY, MIDDLE, BLANK",
+                "DONE": "SURE, UH HUH, NEXT, WHAT?, YOUR, UR, YOU'RE, HOLD, LIKE",
+                "FIRST": "LEFT, OKAY, YES, MIDDLE, NO, RIGHT, NOTHING, UHHH, WAIT",
+                "HOLD": "YOU ARE, U, DONE, UH UH, YOU, UR, SURE, WHAT?, YOU'RE",
+                "LEFT": "RIGHT, LEFT",
+                "LIKE": "YOU'RE, NEXT, U, UR, HOLD, DONE, UH UH, WHAT?, UH HUH",
+                "MIDDLE": "BLANK, READY, OKAY, WHAT, NOTHING, PRESS, NO, WAIT, LEFT",
+                "NEXT": "WHAT?, UH HUH, UH UH, YOUR, HOLD, SURE, NEXT",
+                "NO": "BLANK, UHHH, WAIT, FIRST, WHAT, READY, RIGHT, YES, NOTHING",
+                "NOTHING": "UHHH, RIGHT, OKAY, MIDDLE, YES, BLANK, NO, PRESS, LEFT",
+                "OKAY": "MIDDLE, NO, FIRST, YES, UHHH, NOTHING, WAIT, OKAY",
+                "PRESS": "RIGHT, MIDDLE, YES, READY, PRESS",
+                "READY": "YES, OKAY, WHAT, MIDDLE, LEFT, PRESS, RIGHT, BLANK, READY",
+                "RIGHT": "YES, NOTHING, READY, PRESS, NO, WAIT, WHAT, RIGHT",
+                "SURE": "YOU ARE, DONE, LIKE, YOU'RE, YOU, HOLD, UH HUH, HR, SURE",
+                "U": "UH HUH, SURE, NEXT, WHAT?, YOU'RE, UR, UH HUH, DONE, U",
+                "UHHH": "READY, NOTHING, LEFT, WHAT, OKAY, YES, RIGHT, NO, PRESS",
+                "UH HUH": "UH HUH",
+                "UH UH": "UR, U, YOU ARE, YOU'RE, NEXT, UH UH",
+                "UR": "DONE, U, UR",
+                "WAIT": "UHHH, NO, BLANK, OKAY, YES, LEFT, FIRST, PRESS, WHAT",
+                "WHAT": "UHHH, WHAT",
+                "WHAT?": "YOU, HOLD, YOU'RE, YOUR, U, DONE, UH UH, LIKE, YOU ARE",
+                "YES": "OKAY, RIGHT, UHHH, MIDDLE, FIRST, WHAT, PRESS, READY, NOTHING",
+                "YOU": "SURE, YOU ARE, YOUR, YOU'RE, NEXT, UH HUH, UR, HOLD, WHAT?",
+                "YOU'RE": "YOU, YOU'RE",
+                "YOU ARE": "YOUR, NEXT, LIKE, UH HUH, WHAT?, DONE, UH UH, HOLD, YOU",
+                "YOUR": "UH UH, YOU ARE, UH HUH, YOUR",
+            };
+
+
+
 
 
             var whosonfirst = function (count) {
                 $scope.log("Who's on first");
                 $scope.currentmodule = name;
+
+                params.buttonword = null;
+                params.displayword = null;
+                params.position = null;
+                params.answer = null;
 
 
                 $scope.annyang.addCommands({
@@ -1135,13 +1357,14 @@ angular.module('ktane', [])
                     }
                 });
 
+                $scope.say("Letters?");
+
             };
 
             var words = function(words){
 
-                $scope.log("Words were " + words);
-
                 words = words.split(' ');
+
 
                 var letters = "";
                 // Grab the first letter of each word and load it into the array
@@ -1149,8 +1372,12 @@ angular.module('ktane', [])
                     word = word.toUpperCase();
                     if(word === "SPACE"){
                         letters += " ";
-                    }else if(word === "APOSTROPHE"){
+                    }else if(word === "APOSTROPHE") {
                         letters += "'";
+                    }else if(word === "BLANK" || word === "NOTHING") {
+                        letters = "";
+                    }else if(homonyms[word] !== undefined){
+                        letters += homonyms[word];
                     }else {
                         letters += word[0];
                     }
@@ -1159,12 +1386,46 @@ angular.module('ktane', [])
 
                 $scope.log(letters);
 
+                if(params.displayword === null){
+
+                    var position = wordmapping[letters];
+
+                    if(position){
+                        params.position = buttonpositions[position];
+                        $scope.say("What is the button in the " + params.position + " position");
+                        params.displayword = letters;
+                    } else {
+                        $scope.say(letters + " was not found. Repeat");
+                    }
+
+
+                }else{
+                    // displayword wasn't null, so this is the second stage
+                    params.buttonword = letters;
+
+                    var answer = answers[letters];
+
+                    if(answer){
+                        params.buttonword = letters;
+                        params.answer = answer;
+                        // Todo: This should probably put spaces inbetween each character so when it's read out it does it letter by letter?
+                        $scope.say(params.answer);
+                        finish();
+                    }else{
+                        $scope.say(letters + " was not found. Repeat");
+                    }
+
+
+
+
+                }
+
             };
 
 
 
             var finish = function () {
-                $scope.annyang.removeCommands(["complicatedwires:wire","complicatedwires:done"]);
+                $scope.annyang.removeCommands(["whosonfirst:words","whosonfirst:done"]);
                 $scope.currentmodule = null;
             };
 
@@ -1188,6 +1449,8 @@ angular.module('ktane', [])
 
         // Start listening. You can call this here, or attach this call to an event, button, etc.
         $scope.annyang.start();
+
+        $scope.say("Welcome");
 
 
     });
