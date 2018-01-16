@@ -1,20 +1,18 @@
 angular.module('ktane', [])
-    .factory('AnnyangService', function AnnyangService($rootScope) {
+    .factory('AnnyangService', function AnnyangService($rootScope, $timeout) {
             var service = {};
 
-            service.addCommand = function(key, phrase, callback) {
+            service.addCommands = function(commands) {
 
-                // Wrap annyang command in scope apply
-                command[phrase] = function(args) {
-                    $rootScope.$apply(callback(args));
-                };
+                _.each(commands, function(value, key){
 
+                    var _c = value.callback;
 
-                var commands = {};
-                commands[key] = {
-                    'regexp': phrase,
-                    'callback': callback
-                };
+                    value.callback = function() {
+                        // As per the instructions here: https://docs.angularjs.org/error/$rootScope/inprog
+                        $timeout(_c.apply(this, arguments), 0);
+                    };
+                });
 
 
                 // Add the commands to annyang
@@ -22,8 +20,11 @@ angular.module('ktane', [])
 
             };
 
+            service.removeCommands  = annyang.removeCommands;
+            service.trigger = annyang.trigger;
+
+
             service.start = function() {
-                annyang.addCommands(service.commands);
                 annyang.debug(true);
                 annyang.start();
             };
@@ -31,10 +32,11 @@ angular.module('ktane', [])
             return service;
         }
     )
-    .controller('ktaneController', function ($scope, $q) {
+    .controller('ktaneController', function ($scope, $q, AnnyangService) {
         $scope.phrase = "";
         $scope.$q = $q;
         $scope.logitems = [];
+        $scope.annyang = AnnyangService;
 
         // We have an array of commonly misheard words for numbers here.
         var numbers = {
@@ -58,11 +60,9 @@ angular.module('ktane', [])
             '6': 6,
         };
 
-        $scope.annyang = annyang;
-        annyang.debug(true);
 
         $scope.simulateSpeech = function () {
-            annyang.trigger($scope.phrase);
+            $scope.annyang.trigger($scope.phrase);
             $scope.phrase = '';
         };
 
@@ -1009,7 +1009,12 @@ angular.module('ktane', [])
 
         $scope.complicatedwires = function () {
             var name = "complicatedwires";
-            var params = {};
+            var params = {
+                red: null,
+                blue: null,
+                light: null,
+                star: null,
+            };
 
 
             var complicatedwires = function (count) {
@@ -1037,6 +1042,10 @@ angular.module('ktane', [])
                 var light = !light.includes("no");
                 var star = !star.includes("no");
 
+                params.red = red;
+                params.blue = blue;
+                params.light = light;
+                params.star =  star;
 
                 if ((red === false && blue === false && light === false) ||
                     (red === true && blue === false && star === true && light === false)) {
@@ -1178,7 +1187,7 @@ angular.module('ktane', [])
 
 
         // Start listening. You can call this here, or attach this call to an event, button, etc.
-        annyang.start({autoRestart: true});
+        $scope.annyang.start();
 
 
     });
