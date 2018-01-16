@@ -1,4 +1,36 @@
 angular.module('ktane', [])
+    .factory('AnnyangService', function AnnyangService($rootScope) {
+            var service = {};
+
+            service.addCommand = function(key, phrase, callback) {
+
+                // Wrap annyang command in scope apply
+                command[phrase] = function(args) {
+                    $rootScope.$apply(callback(args));
+                };
+
+
+                var commands = {};
+                commands[key] = {
+                    'regexp': phrase,
+                    'callback': callback
+                };
+
+
+                // Add the commands to annyang
+                annyang.addCommands(commands);
+
+            };
+
+            service.start = function() {
+                annyang.addCommands(service.commands);
+                annyang.debug(true);
+                annyang.start();
+            };
+
+            return service;
+        }
+    )
     .controller('ktaneController', function ($scope, $q) {
         $scope.phrase = "";
         $scope.$q = $q;
@@ -906,16 +938,6 @@ angular.module('ktane', [])
             return params;
         }();
 
-
-        // TODO: Keypads
-
-        // TODO: Simon Says
-
-        // TODO: Who's on first
-
-        // TODO: Morse Code
-
-        // TODO: Complicated Wires
         $scope.complicatedwires = function () {
             var name = "complicatedwires";
             var params = {};
@@ -1006,6 +1028,84 @@ angular.module('ktane', [])
 
             return params;
         }();
+
+
+
+        // TODO: Keypads
+
+        // TODO: Simon Says
+
+        // TODO: Who's on first
+        $scope.whosonfirst = function () {
+            var name = "whosonfirst";
+            var params = {};
+
+
+            var whosonfirst = function (count) {
+                $scope.log("Who's on first");
+                $scope.currentmodule = name;
+
+
+                $scope.annyang.addCommands({
+                    "whosonfirst:words": {
+                        'regexp': /^(.*)$/, // at this point we're just matching a variable number of words!
+                        'callback': words
+                    },
+                    "whosonfirst:done": {
+                        'regexp': /^done$/,
+                        'callback': finish
+                    }
+                });
+
+            };
+
+            var words = function(words){
+
+                $scope.log("Words were " + words);
+
+                words = words.split(' ');
+
+                var letters = "";
+                // Grab the first letter of each word and load it into the array
+                _.each(words, function (word) {
+                    word = word.toUpperCase();
+                    if(word === "SPACE"){
+                        letters += " ";
+                    }else if(word === "APOSTROPHE"){
+                        letters += "'";
+                    }else {
+                        letters += word[0];
+                    }
+                });
+
+
+                $scope.log(letters);
+
+            };
+
+
+
+            var finish = function () {
+                $scope.annyang.removeCommands(["complicatedwires:wire","complicatedwires:done"]);
+                $scope.currentmodule = null;
+            };
+
+
+            $scope.annyang.addCommands({
+                "whosonfirst": {
+                    'regexp': /^who's on first$/,
+                    'callback': whosonfirst
+                }
+            });
+
+
+            return params;
+        }();
+
+
+        // TODO: Morse Code
+
+
 
 
         // Start listening. You can call this here, or attach this call to an event, button, etc.
