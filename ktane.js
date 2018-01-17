@@ -1255,6 +1255,41 @@ angular.module('ktane', [])
 
             };
 
+            var icons = {
+                1: {names: ["O with a tick"]},
+                2: {names: ["A T"]},
+                3: {names: ["Lambda"]},
+                4: {names: ["Curly N"]},
+                5: {names: ["H triangle semicircle"]},
+                6: {names: ["Curly H"]},
+                7: {names: ["Backwards C with a dot"]},
+                8: {names: ["Backwards E"]},
+                9: {names: ["Curly C"]},
+                0: {names: ["Star outline"]},
+                11: {names: ["Upside down question mark"]},
+                12: {names: ["Copyright mark"]},
+                13: {names: ["Saggy tits"]},
+                14: {names: ["Reverse K"]},
+                15: {names: ["Three with a tick"]},
+                16: {names: ["Six"]},
+                17: {names: ["Paragraph mark"]},
+                18: {names: ["PT"]},
+                19: {names: ["Smiley face"]},
+                20: {names: ["Trident"]},
+                21: {names: ["C with a dot” (careful to not miss “backwards”"]},
+                22: {names: ["Paragraph mark"]},
+                23: {names: ["Snake 3"]},
+                24: {names: ["Star” (careful not to miss star outline"]},
+                25: {names: ["Bell bar"]},
+                26: {names: ["Dipthong"]},
+                27: {names: ["N"]},
+                28: {names: ["Omega"]},
+            };
+
+            var columns = {
+
+            };
+
 
             var keypad = function (count) {
                 $scope.log("Keypad");
