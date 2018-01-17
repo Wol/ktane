@@ -32,7 +32,7 @@ angular.module('ktane', [])
             return service;
         }
     )
-    .controller('ktaneController', function ($scope, $q, AnnyangService) {
+    .controller('ktaneController', function ($scope, $q, AnnyangService, $timeout) {
         $scope.phrase = "";
         $scope.$q = $q;
         $scope.logitems = [];
@@ -1248,7 +1248,7 @@ angular.module('ktane', [])
 
 
 
-        // TODO: Keypads
+
         $scope.keypad = function () {
             var name = "keypad";
             var params = {
@@ -1262,16 +1262,6 @@ angular.module('ktane', [])
 
                 $scope.say("Symbols");
 
-                $scope.annyang.addCommands({
-                    "keypad:symbols": {
-                        'regexp': /^(\w+)$/,
-                        'callback': symbols
-                    },
-                    "keypad:done": {
-                        'regexp': /^done$/,
-                        'callback': finish
-                    }
-                });
 
             };
 
@@ -1280,6 +1270,11 @@ angular.module('ktane', [])
                 words = words.toUpperCase()[0];
 
                 $scope.log(words);
+
+                // TODO: Keypads
+                // First try and tokenise the string into what symbols are found
+                // Have a list of the icons and which columns theyre in
+                // filter this list
 
             };
 
@@ -1300,7 +1295,7 @@ angular.module('ktane', [])
             return params;
         }();
 
-        // TODO: Simon Says
+
         $scope.simonsays = function () {
             var name = "simonsays";
             var params = {
@@ -1312,6 +1307,7 @@ angular.module('ktane', [])
                 $scope.log("Simon Says");
                 $scope.currentmodule = name;
 
+                // Todo: Should probably handle the case of more than 0 strikes on here
                 $scope.property("serialnumber_vowel").then(function(vowel){
                     if(vowel === "yes"){
                         $scope.say("Red and blue swap. Green and yellow swap");
@@ -1326,7 +1322,7 @@ angular.module('ktane', [])
             };
 
             var finish = function () {
-                $scope.annyang.removeCommands(["wiresequence:wire", "wiresequence:done"]);
+                // $scope.annyang.removeCommands();
                 $scope.currentmodule = null;
             };
 
@@ -1344,7 +1340,6 @@ angular.module('ktane', [])
 
 
 
-        // TODO: Who's on first
         $scope.whosonfirst = function () {
             var name = "whosonfirst";
             var params = {
@@ -1535,7 +1530,166 @@ angular.module('ktane', [])
         }();
 
 
+        $scope.needycapacitor = function () {
+            var name = "needycapacitor";
+            var params = {
+
+            };
+
+
+            var needycapacitor = function (count) {
+                $scope.say("OK. Starting timer.");
+                // We don't set the 'currentmodule' to this as these are needy
+
+                // Set a timer:
+
+                $timeout(function(){
+                    $scope.say("Check needy capacitor")
+                }, 35000);
+
+
+            };
+
+            $scope.annyang.addCommands({
+                "needycapacitor": {
+                    'regexp': /^capacitor discharged$/,
+                    'callback': needycapacitor
+                }
+            });
+
+            return params;
+        }();
+
+
         // TODO: Morse Code
+
+
+        $scope.simonsays = function () {
+            var name = "simonsays";
+            var params = {
+
+            };
+
+
+            var simonsays = function (count) {
+                $scope.log("Simon Says");
+                $scope.currentmodule = name;
+
+                // Todo: Should probably handle the case of more than 0 strikes on here
+                $scope.property("serialnumber_vowel").then(function(vowel){
+                    if(vowel === "yes"){
+                        $scope.say("Red and blue swap. Green and yellow swap");
+                    }else{
+                        $scope.say("Blue to yellow to red to blue. Green is the same");
+                    }
+
+                    finish();
+                });
+
+
+            };
+
+            var finish = function () {
+                // $scope.annyang.removeCommands();
+                $scope.currentmodule = null;
+            };
+
+
+            $scope.annyang.addCommands({
+                "simonsays": {
+                    'regexp': /^simon says$/,
+                    'callback': simonsays
+                }
+            });
+
+
+            return params;
+        }();
+
+
+
+
+        $scope.needyknob = function () {
+            var name = "needyknob";
+            var params = {
+
+            };
+
+
+            var needyknob = function (count) {
+                $scope.log("Needy Knob");
+                $scope.currentmodule = name;
+
+
+                if(count === undefined){
+                    $scope.say("How many lights are lit on the left hand side");
+                    $scope.annyang.addCommands({
+                        "needyknob:count": {
+                            'regexp': /^(zero|0|one|1|three|four|for|4|3|five|5)$/,
+                            'callback': direction
+                        }
+                    });
+                }else{
+                    direction(count);
+                }
+
+
+            };
+
+            var direction = function(value){
+                var count = numbers[value];
+                $scope.annyang.removeCommands("needyknob:count");
+
+                if(count === 4){
+                    $scope.say("Up");
+                    finish();
+                }else if(count === 1 || count === 0){
+                    $scope.say("Left");
+                    finish();
+                }else if(count === 3){
+                    $scope.say("Down");
+                    finish();
+                }else if(count === 5){
+                    $scope.say("Corner or middle?");
+                    $scope.annyang.addCommands({
+                        "needyknob:position": {
+                            'regexp': /^(corner|middle|center)$/,
+                            'callback': fivelights
+                        }
+                    });
+                }
+            };
+
+            var fivelights = function(position){
+                if(position === "corner"){
+                    $scope.say("Down");
+                }else{
+                    $scope.say("Right");
+                }
+                finish();
+            };
+
+            var finish = function () {
+                $scope.annyang.removeCommands(["needyknob:count", "needyknob:position"]);
+                $scope.currentmodule = null;
+            };
+
+
+            $scope.annyang.addCommands({
+                "needyknob": {
+                    'regexp': /^needy knob$/,
+                    'callback': needyknob
+                },
+                "needyknob:withcount": {
+                    'regexp': /^needy knob (zero|0|one|1|three|four|for|4|3|five|5)$/,
+                    'callback': needyknob
+                }
+            });
+
+
+            return params;
+        }();
+
 
 
 
