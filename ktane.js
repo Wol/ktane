@@ -1005,6 +1005,7 @@ angular.module('ktane', [])
 
             };
 
+
             var display = function (value) {
 
                 $scope.annyang.removeCommands("memory:singledisplay");
@@ -1248,8 +1249,100 @@ angular.module('ktane', [])
 
 
         // TODO: Keypads
+        $scope.keypad = function () {
+            var name = "keypad";
+            var params = {
+
+            };
+
+
+            var keypad = function (count) {
+                $scope.log("Keypad");
+                $scope.currentmodule = name;
+
+                $scope.say("Symbols");
+
+                $scope.annyang.addCommands({
+                    "keypad:symbols": {
+                        'regexp': /^(\w+)$/,
+                        'callback': symbols
+                    },
+                    "keypad:done": {
+                        'regexp': /^done$/,
+                        'callback': finish
+                    }
+                });
+
+            };
+
+            var symbols = function (words) {
+
+                words = words.toUpperCase()[0];
+
+                $scope.log(words);
+
+            };
+
+            var finish = function () {
+                $scope.annyang.removeCommands(["keypad:symbols", "keypad:done"]);
+                $scope.currentmodule = null;
+            };
+
+
+            $scope.annyang.addCommands({
+                "keypad": {
+                    'regexp': /^keypad$/,
+                    'callback': keypad
+                }
+            });
+
+
+            return params;
+        }();
 
         // TODO: Simon Says
+        $scope.simonsays = function () {
+            var name = "simonsays";
+            var params = {
+
+            };
+
+
+            var simonsays = function (count) {
+                $scope.log("Simon Says");
+                $scope.currentmodule = name;
+
+                $scope.property("serialnumber_vowel").then(function(vowel){
+                    if(vowel === "yes"){
+                        $scope.say("Red and blue swap. Green and yellow swap");
+                    }else{
+                        $scope.say("Blue to yellow to red to blue. Green is the same");
+                    }
+
+                    finish();
+                });
+
+
+            };
+
+            var finish = function () {
+                $scope.annyang.removeCommands(["wiresequence:wire", "wiresequence:done"]);
+                $scope.currentmodule = null;
+            };
+
+
+            $scope.annyang.addCommands({
+                "simonsays": {
+                    'regexp': /^simon says$/,
+                    'callback': simonsays
+                }
+            });
+
+
+            return params;
+        }();
+
+
 
         // TODO: Who's on first
         $scope.whosonfirst = function () {
