@@ -10,7 +10,7 @@ angular.module('ktane', [])
 
                     value.callback = function() {
                         // As per the instructions here: https://docs.angularjs.org/error/$rootScope/inprog
-                        $timeout(_c.apply(this, arguments), 0);
+                        $timeout(_c.apply(this, arguments), 5);
                     };
                 });
 
@@ -128,6 +128,10 @@ angular.module('ktane', [])
 
             }));
 
+        };
+
+        $scope.shutup = function() {
+            speechSynthesis.cancel();
         };
 
         $scope.say = function (string, rate) {
@@ -387,10 +391,12 @@ angular.module('ktane', [])
 
                 if (colour === "red" && word === "hold") {
                     pressandrelease();
+                    return;
                 }
 
                 if (colour === "blue" && word === "abort") {
                     holdandchecklight();
+                    return;
                 }
 
                 checkfrk();
@@ -920,6 +926,10 @@ angular.module('ktane', [])
                     return;
                 }
                 position = position.toUpperCase()[0];
+                if(position === "P") position = "B"; // Peter
+                if(position === "S") position = "C"; // Sea
+
+                colour = colour.toLowerCase();
 
                 if (definition[colour][params.counts[colour]].includes(position)) {
                     $scope.say("Cut");
@@ -1425,41 +1435,41 @@ angular.module('ktane', [])
             };
 
             var answers = {
-                "BLANK": "WAIT, RIGHT, OKAY, MIDDLE, BLANK",
-                "DONE": "SURE, UH HUH, NEXT, WHAT?, YOUR, UR, YOU'RE, HOLD, LIKE",
-                "FIRST": "LEFT, OKAY, YES, MIDDLE, NO, RIGHT, NOTHING, UHHH, WAIT",
-                "HOLD": "YOU ARE, U, DONE, UH UH, YOU, UR, SURE, WHAT?, YOU'RE",
-                "LEFT": "RIGHT, LEFT",
-                "LIKE": "YOU'RE, NEXT, U, UR, HOLD, DONE, UH UH, WHAT?, UH HUH",
-                "MIDDLE": "BLANK, READY, OKAY, WHAT, NOTHING, PRESS, NO, WAIT, LEFT",
-                "NEXT": "WHAT?, UH HUH, UH UH, YOUR, HOLD, SURE, NEXT",
-                "NO": "BLANK, UHHH, WAIT, FIRST, WHAT, READY, RIGHT, YES, NOTHING",
-                "NOTHING": "UHHH, RIGHT, OKAY, MIDDLE, YES, BLANK, NO, PRESS, LEFT",
-                "OKAY": "MIDDLE, NO, FIRST, YES, UHHH, NOTHING, WAIT, OKAY",
-                "PRESS": "RIGHT, MIDDLE, YES, READY, PRESS",
-                "READY": "YES, OKAY, WHAT, MIDDLE, LEFT, PRESS, RIGHT, BLANK, READY",
-                "RIGHT": "YES, NOTHING, READY, PRESS, NO, WAIT, WHAT, RIGHT",
-                "SURE": "YOU ARE, DONE, LIKE, YOU'RE, YOU, HOLD, UH HUH, HR, SURE",
-                "U": "UH HUH, SURE, NEXT, WHAT?, YOU'RE, UR, UH HUH, DONE, U",
-                "UHHH": "READY, NOTHING, LEFT, WHAT, OKAY, YES, RIGHT, NO, PRESS",
+                "BLANK": "WAIT,RIGHT,OKAY,MIDDLE,BLANK",
+                "DONE": "SURE,UH HUH,NEXT,WHAT?,YOUR,UR,YOU'RE,HOLD,LIKE",
+                "FIRST": "LEFT,OKAY,YES,MIDDLE,NO,RIGHT,NOTHING,UHHH,WAIT",
+                "HOLD": "YOU ARE,U,DONE,UH UH,YOU,UR,SURE,WHAT?,YOU'RE",
+                "LEFT": "RIGHT,LEFT",
+                "LIKE": "YOU'RE,NEXT,U,UR,HOLD,DONE,UH UH,WHAT?,UH HUH",
+                "MIDDLE": "BLANK,READY,OKAY,WHAT,NOTHING,PRESS,NO,WAIT,LEFT",
+                "NEXT": "WHAT?,UH HUH,UH UH,YOUR,HOLD,SURE,NEXT",
+                "NO": "BLANK,UHHH,WAIT,FIRST,WHAT,READY,RIGHT,YES,NOTHING",
+                "NOTHING": "UHHH,RIGHT,OKAY,MIDDLE,YES,BLANK,NO,PRESS,LEFT",
+                "OKAY": "MIDDLE,NO,FIRST,YES,UHHH,NOTHING,WAIT,OKAY",
+                "PRESS": "RIGHT,MIDDLE,YES,READY,PRESS",
+                "READY": "YES,OKAY,WHAT,MIDDLE,LEFT,PRESS,RIGHT,BLANK,READY",
+                "RIGHT": "YES,NOTHING,READY,PRESS,NO,WAIT,WHAT,RIGHT",
+                "SURE": "YOU ARE,DONE,LIKE,YOU'RE,YOU,HOLD,UH HUH,HR,SURE",
+                "U": "UH HUH,SURE,NEXT,WHAT?,YOU'RE,UR,UH HUH,DONE,U",
+                "UHHH": "READY,NOTHING,LEFT,WHAT,OKAY,YES,RIGHT,NO,PRESS",
                 "UH HUH": "UH HUH",
-                "UH UH": "UR, U, YOU ARE, YOU'RE, NEXT, UH UH",
-                "UR": "DONE, U, UR",
-                "WAIT": "UHHH, NO, BLANK, OKAY, YES, LEFT, FIRST, PRESS, WHAT",
-                "WHAT": "UHHH, WHAT",
-                "WHAT?": "YOU, HOLD, YOU'RE, YOUR, U, DONE, UH UH, LIKE, YOU ARE",
-                "YES": "OKAY, RIGHT, UHHH, MIDDLE, FIRST, WHAT, PRESS, READY, NOTHING",
-                "YOU": "SURE, YOU ARE, YOUR, YOU'RE, NEXT, UH HUH, UR, HOLD, WHAT?",
-                "YOU'RE": "YOU, YOU'RE",
-                "YOU ARE": "YOUR, NEXT, LIKE, UH HUH, WHAT?, DONE, UH UH, HOLD, YOU",
-                "YOUR": "UH UH, YOU ARE, UH HUH, YOUR",
+                "UH UH": "UR,U,YOU ARE,YOU'RE,NEXT,UH UH",
+                "UR": "DONE,U,UR",
+                "WAIT": "UHHH,NO,BLANK,OKAY,YES,LEFT,FIRST,PRESS,WHAT",
+                "WHAT": "UHHH,WHAT",
+                "WHAT?": "YOU,HOLD,YOU'RE,YOUR,U,DONE,UH UH,LIKE,YOU ARE",
+                "YES": "OKAY,RIGHT,UHHH,MIDDLE,FIRST,WHAT,PRESS,READY,NOTHING",
+                "YOU": "SURE,YOU ARE,YOUR,YOU'RE,NEXT,UH HUH,UR,HOLD,WHAT?",
+                "YOU'RE": "YOU,YOU'RE",
+                "YOU ARE": "YOUR,NEXT,LIKE,UH HUH,WHAT?,DONE,UH UH,HOLD,YOU",
+                "YOUR": "UH UH,YOU ARE,UH HUH,YOUR",
             };
 
 
 
 
 
-            var whosonfirst = function (count) {
+            var whosonfirst = function (_words) {
                 $scope.log("Who's on first");
                 $scope.currentmodule = name;
 
@@ -1480,11 +1490,25 @@ angular.module('ktane', [])
                     }
                 });
 
-                $scope.say("Letters?");
+                if(_words === undefined){
+                    $scope.say("Letters?");
+                }else{
+                    words(_words);
+                }
 
             };
 
             var words = function(words){
+
+                if(words === "done"){
+                    finish();
+                    return;
+                }
+                if(words === "continue"){
+                    $scope.shutup();
+                    params.displayword = null;
+                    return;
+                }
 
                 words = words.split(' ');
 
@@ -1531,9 +1555,12 @@ angular.module('ktane', [])
                     if(answer){
                         params.buttonword = letters;
                         params.answer = answer;
-                        // Todo: This should probably put spaces inbetween each character so when it's read out it does it letter by letter?
-                        $scope.say(params.answer);
-                        finish();
+                        var _answers = answer.split(",");
+                        _.each(_answers, function(answer) {
+                            $scope.say(answer.split(" ").join("%").split("").join(" ").split("%").join(" space ").split("?").join(" questionmark ").split("'").join(" apostrophe "), 0.75);
+
+                        });
+
                     }else{
                         $scope.say(letters + " was not found. Repeat");
                     }
@@ -1548,7 +1575,7 @@ angular.module('ktane', [])
 
 
             var finish = function () {
-                $scope.annyang.removeCommands(["whosonfirst:words","whosonfirst:done"]);
+                $scope.annyang.removeCommands(["whosonfirst:words","whosonfirst:done","whosonfirst:next"]);
                 $scope.currentmodule = null;
             };
 
@@ -1556,6 +1583,10 @@ angular.module('ktane', [])
             $scope.annyang.addCommands({
                 "whosonfirst": {
                     'regexp': /^who's on first$/,
+                    'callback': whosonfirst
+                },
+                "whosonfirst:withwords": {
+                    'regexp': /^who's on first (.*)$/,
                     'callback': whosonfirst
                 }
             });
@@ -1641,6 +1672,8 @@ angular.module('ktane', [])
                     }
                 });
 
+                $scope.say("Go");
+
                 resetvariables();
 
                 navigator.mediaDevices.getUserMedia({
@@ -1669,7 +1702,9 @@ angular.module('ktane', [])
             var audioContext = null;
 
             var initialisestream = function(stream) {
-                audioContext = new AudioContext();
+                if(!audioContext || (audioContext && audioContext.state === "closed")) {
+                    audioContext = new AudioContext();
+                }
                 analyser = audioContext.createAnalyser();
                 microphone = audioContext.createMediaStreamSource(stream);
                 javascriptNode = audioContext.createScriptProcessor(512, 1, 1);
@@ -1758,6 +1793,9 @@ angular.module('ktane', [])
 
             var analysestreaks = function(streaks) {
 
+                if($scope.currentmodule !== name){
+                    return; // We've exited this module, so don't process anything more
+                }
 
                 params.streaks = streaks;
 
@@ -1776,6 +1814,11 @@ angular.module('ktane', [])
 
                 if(maxdash === mindot){
                     return; // Well this ain't right!
+                }
+
+                if(maxdash < mindot * 1.5){
+                    // Make sure that the dash length is more than 1.5 times the dot, otherwise skip.
+                    return;
                 }
 
                 params.maxdash = maxdash;
@@ -1804,7 +1847,14 @@ angular.module('ktane', [])
                     text = text.substr(1);
                 }
 
+
                 params.text = text;
+
+                if(text.length < 8){
+                    // Don't try to match on the odd character. Only once we have 8 or more chars.
+                    return;
+                }
+
 
 
                 splittext = text.split("|", 2);
@@ -1848,7 +1898,7 @@ angular.module('ktane', [])
 
             var finish = function () {
                 $scope.annyang.removeCommands("morsecode:done");
-                audioContext.close();
+                if(audioContext.state !== "closed") { audioContext.close(); }
                 $scope.currentmodule = null;
             };
 
