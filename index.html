@@ -59,13 +59,32 @@
     Answer: {{whosonfirst.answer}}<br/>
 
 
+    <h3>Morse</h3>
+    Streaks {{morsecode.streaks}}<br/>
+    Max amplitude {{morsecode.maxamplitude}}<br/>
+    Max dash {{morsecode.maxdash}}<br/>
+    Min dot {{morsecode.mindot}}<br/>
+    Text {{morsecode.text}}<br/>
+    <ul>
+        <li ng-repeat="word in morsecode.candidates">{{word.word}} - {{ word.morse }}</li>
+    </ul>
+
+    <div>
+        <style>
+            .black {
+                background-color: black;
+            }
+            .morseblock {
+                display: inline-block;
+            }
+        </style>
+        <span ng-repeat="streak in morsecode.streaks" class="morseblock" ng-style="{'width': streak.streak + 'px'}" ng-class="{black: streak.value}">&nbsp;</span>
+    </div>
     <hr/>
 
     <ul>
         <li ng-repeat="logitem in logitems track by $index">{{ logitem }}</li>
     </ul>
-
-
 
     <div>
         <form ng-submit="simulateSpeech()">

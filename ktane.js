@@ -32,7 +32,7 @@ angular.module('ktane', [])
             return service;
         }
     )
-    .controller('ktaneController', function ($scope, $q, AnnyangService, $timeout) {
+    .controller('ktaneController', function ($scope, $q, AnnyangService, $timeout, $rootScope) {
         $scope.phrase = "";
         $scope.$q = $q;
         $scope.logitems = [];
@@ -1564,41 +1564,264 @@ angular.module('ktane', [])
         // TODO: Morse Code
 
 
-        $scope.simonsays = function () {
-            var name = "simonsays";
+        $scope.morsecode = function () {
+            var name = "morsecode";
             var params = {
-
+                maxamplitude: 0,
+                amplitudes: [],
+                streaks: [],
+                maxdash: null,
+                mindot: null,
+                text: "",
             };
 
+            var words = [
 
-            var simonsays = function (count) {
-                $scope.log("Simon Says");
+                {morse: "... .... . .-.. .-..", word: "shell", frequency: "3.505 MHz"},
+                {morse: ".... .- .-.. .-.. ...", word: "halls", frequency: "3.515 MHz"},
+                {morse: "... .-.. .. -.-. -.-", word: "slick", frequency: "3.522 MHz"},
+                {morse: "... - .. -. --.", word: "sting", frequency: "3.592 MHz"},
+                {morse: "... - . .- -.-", word: "steak", frequency: "3.582 MHz"},
+                {morse: "...- . -.-. - --- .-.", word: "vector", frequency: "3.595 MHz"},
+                {morse: "... - .-. --- -... .", word: "strobe", frequency: "3.545 MHz"},
+                {morse: "..-. .-.. .. -.-. -.-", word: "flick", frequency: "3.555 MHz"},
+                {morse: ".-.. . .- -.- ...", word: "leaks", frequency: "3.542 MHz"},
+                {morse: "-... .. ... - .-. ---", word: "bistro", frequency: "3.552 MHz"},
+                {morse: "-... . .- - ...", word: "beats", frequency: "3.600 MHz"},
+                {morse: "-... .-. .. -.-. -.-", word: "brick", frequency: "3.575 MHz"},
+                {morse: "-... .-. . .- -.-", word: "break", frequency: "3.572 MHz"},
+                {morse: "-... --- -- -... ...", word: "bombs", frequency: "3.565 MHz"},
+                {morse: "- .-. .. -.-. -.-", word: "trick", frequency: "3.532 MHz"},
+                {morse: "-... --- -..- . ...", word: "boxes", frequency: "3.535 MHz"},
+            ];
+
+            var morsecode = function (count) {
+                $scope.log("Morse code");
                 $scope.currentmodule = name;
 
-                // Todo: Should probably handle the case of more than 0 strikes on here
-                $scope.property("serialnumber_vowel").then(function(vowel){
-                    if(vowel === "yes"){
-                        $scope.say("Red and blue swap. Green and yellow swap");
-                    }else{
-                        $scope.say("Blue to yellow to red to blue. Green is the same");
+                $scope.annyang.addCommands({
+                    "morsecode": {
+                        'regexp': /^done$/,
+                            'callback': finish
+                    }
+                });
+
+                resetvariables();
+
+                navigator.mediaDevices.getUserMedia({
+                        audio: true
+                    })
+                    .then(initialisestream)
+                    .catch(
+                        function(err) {
+                            console.log("The following error occured: " + err.name)
+                        }
+                    );
+
+            };
+
+            var resetvariables = function(){
+
+                params.maxamplitude = 0;
+                params.amplitudes = [];
+                params.streaks = [];
+                params.maxdash = null;
+                params.mindot = null;
+                params.text = "";
+
+            };
+
+            var audioContext = null;
+
+            var initialisestream = function(stream) {
+                audioContext = new AudioContext();
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+                javascriptNode = audioContext.createScriptProcessor(512, 1, 1);
+
+                analyser.smoothingTimeConstant = 0.0;
+                analyser.fftSize = 256;
+
+                microphone.connect(analyser);
+                analyser.connect(javascriptNode);
+                javascriptNode.connect(audioContext.destination);
+
+
+                javascriptNode.onaudioprocess = function() {
+                    var array = new Uint8Array(analyser.frequencyBinCount);
+                    analyser.getByteTimeDomainData(array);
+
+                    var max = _.max(array) - 127;
+
+                    if(max > params.maxamplitude){
+                        params.maxamplitude = max;
                     }
 
-                    finish();
-                });
+                    params.amplitudes.push(max);
+
+                    analyseaudio();
+                }; // end fn stream
+            };
+
+            var analyseaudio = function() {
+
+                // Work out the noise / silence threshold
+                var len = params.amplitudes.length;
+
+                if(len % 50){ // analyse every half second (ish)
+                    return;
+                }
+
+                // This passes the audio readings through a filter which increases or decreases a value depending on if it
+                // has heard noise or silence. This is limited to +/- <smoothing>. When it crosses 0, it tags the streak.
+                var streaks = []; // Probably shouldn't recalculate this whole thing every time?
+
+                var oldcalcvalue = 0; // This is the value we animate up and down;
+                var calcvalue = 0; // This is the value we animate up and down;
+                var value = -1; // the limited version of the value
+                var smoothing = 5; // How many successive on/off values are required for it to get to the maximum amount
+                var cutoff = 5;
+                var starti = _.findIndex(params.amplitudes, function(i) { return i < cutoff });
+
+                for(var i = starti; i < len; i++){
+
+                    calcvalue += (params.amplitudes[i] > cutoff) ? 1 : -1; // If its greater than 5, then increase
+                    calcvalue = Math.max(-5, calcvalue);
+                    calcvalue = Math.min(5, calcvalue);
+
+                    // This will only be triggered if calcvalue is -1 or 1, as it can only go up or down 1, and the previous value was 0.
+                    if(oldcalcvalue === 0 && value !== calcvalue) {
+                        // It was 0, and its now changed from what we previously thought the value was:
+                        streaks.push({value: Math.max(0, value), streak: i - starti});
+
+                        value = calcvalue; // The current value is now either 1 or -1
+                        calcvalue = calcvalue * smoothing; // force calc value to go to a strong value. This adds a hysteresis
+                        starti = i; // Reset the streak counter.
+                    }
+
+                    oldcalcvalue = calcvalue;
+                }
+
+
+                streaks.push({value: Math.max(0, value), streak: i - starti});
+
+
+                if((i - starti) > 100 && value === 1) {
+                    // If we've heard nothing but noise for 1 second solid, reset
+                    resetvariables();
+                } else {
+
+                    $rootScope.$apply(function(){
+                        analysestreaks(streaks);
+                    });
+                }
+
+
 
 
             };
 
+            var analysestreaks = function(streaks) {
+
+
+                params.streaks = streaks;
+
+                if(!streaks.length) {
+                    return; // Don't do anything yet.
+                }
+
+                // Filter out the dots and dashes, calculate the max and min, and quantify the array.
+                var dotsanddashes = _.filter(streaks, function(o) { return o.value > 0; });
+                if(!dotsanddashes || !dotsanddashes.length){
+                    return; // No dots found yet!
+                }
+
+                var maxdash = _.maxBy(dotsanddashes, function(o) { return o.streak; }).streak;
+                var mindot = _.minBy(dotsanddashes, function(o) { return o.streak; }).streak;
+
+                if(maxdash === mindot){
+                    return; // Well this ain't right!
+                }
+
+                params.maxdash = maxdash;
+                params.mindot = mindot;
+
+                var threshold = (maxdash + mindot) / 2;
+
+                var text = _.map(streaks, function(o) {
+                    if(o.value === 1){ // this is for noises
+                        return o.streak > threshold ? '-' : '.';
+                    }else if(o.value === 0){ // For silences, return a space
+                        if(o.streak > 250){
+                            // long silence:
+                            return "|";
+                        }else{
+                            return o.streak > maxdash ? ' ' : '';
+                        }
+                    }else if(o.value === -1){ // End of string?
+                        return "|";
+                    }
+
+                }).join("");
+
+                text = text.trim();
+                if(text[0] === "|"){
+                    text = text.substr(1);
+                }
+
+                params.text = text;
+
+
+                splittext = text.split("|", 2);
+
+                var candidates = _.filter(words, function(word){
+                    if(splittext.length === 2){
+                        // Check whether the first part matches the end, and the second part matches the first.
+                        if(word.morse.startsWith(splittext[1]) && word.morse.endsWith(splittext[0])){
+                            return true;
+                        }else if(word.morse.includes(text)){
+                            return true;
+                        }
+                    }else if(splittext.length === 1){
+                        if(word.morse.includes(text)){
+                            return true;
+                        }
+                    }
+                });
+
+                var weakcandidates = _.filter(words, function(word){
+                    // Do a comparison without checking for letter boundaries (spaces) in case these haven't been picked up clearly.
+                    if(word.morse.replace(" ", "").includes(text.replace(" ", ""))){
+                        return true;
+                    }
+                });
+
+                params.candidates = candidates;
+
+                if(candidates.length === 1){
+                    $scope.say("Frequency is " + candidates[0].frequency.replace("MHz" , ""));
+                    finish();
+                }else if(candidates.length === 0){
+                    $scope.log("No match found. Try again?");
+
+                }
+
+
+            };
+
+
+
             var finish = function () {
-                // $scope.annyang.removeCommands();
+                $scope.annyang.removeCommands("morsecode:done");
+                audioContext.close();
                 $scope.currentmodule = null;
             };
 
 
             $scope.annyang.addCommands({
-                "simonsays": {
-                    'regexp': /^simon says$/,
-                    'callback': simonsays
+                "morsecode": {
+                    'regexp': /^morse code$/,
+                    'callback': morsecode
                 }
             });
 
