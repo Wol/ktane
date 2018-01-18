@@ -76,20 +76,40 @@ angular.module('ktane', [])
             $scope.phrase = '';
         };
 
+        $scope.bombproperties = {};
 
-        $scope.bombproperties = {
-            batteries: {
-                value: null,
-                question: "How many batteries are there",
-                response: "(zero|none|one|two|too|to|three|four|for|five|six)",
-                remap: numbers,
-            },
-            frk: {value: null, question: "Is there an indicator saying F R K", response: "(yes|no)"},
-            car: {value: null, question: "Is there an indicator saying F R K", response: "(yes|no)"},
-            parallelport: {value: null, question: "Is there a parallel port", response: "(yes|no)"},
-            serialnumber_evenodd: {value: null, question: "Is the serial number even or odd", response: "(even|odd)"},
-            serialnumber_vowel: {value: null, question: "Does the serial number contain a vowel", response: "(yes|no)"},
+        var newbomb = function() {
+            $scope.bombproperties = {
+                batteries: {
+                    value: null,
+                    question: "How many batteries are there",
+                    response: "(zero|none|one|two|too|to|three|four|for|five|six)",
+                    remap: numbers,
+                },
+                frk: {value: null, question: "Is there an indicator saying F R K", response: "(yes|no)"},
+                car: {value: null, question: "Is there an indicator saying F R K", response: "(yes|no)"},
+                parallelport: {value: null, question: "Is there a parallel port", response: "(yes|no)"},
+                serialnumber_evenodd: {
+                    value: null,
+                    question: "Is the serial number even or odd",
+                    response: "(even|odd)"
+                },
+                serialnumber_vowel: {
+                    value: null,
+                    question: "Does the serial number contain a vowel",
+                    response: "(yes|no)"
+                },
+            };
         };
+
+        $scope.annyang.addCommands({
+            "property:clear": {
+                'regexp': /^new bomb$/,
+                'callback': newbomb(),
+            }
+        });
+
+        newbomb();
 
         // Returns a promise which gets the value of a property of the bomb. If it knows it already, it'll resolve
         // instantly, but otherwise it'll ask the user.
