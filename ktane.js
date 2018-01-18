@@ -138,13 +138,12 @@ angular.module('ktane', [])
 
             var selectedvoice = null;
             var voices = speechSynthesis.getVoices();
-            console.log("Voices" + voices);
+
             voices.forEach(function(voice, i) {
                 if(voice.name === "Google UK English Female"){
                     selectedvoice = voice;
                 }
             });
-            console.log("selected voice" + selectedvoice);
 
             $scope.log(string);
 
@@ -608,7 +607,6 @@ angular.module('ktane', [])
 
             var maze = function (x, y) {
 
-                console.log(mazes);
                 $scope.log("Maze");
                 $scope.currentmodule = name;
 
@@ -1266,39 +1264,44 @@ angular.module('ktane', [])
             };
 
             var icons = {
-                1: {names: ["O with a tick"]},
-                2: {names: ["A T"]},
+                1: {names: ["O with a tick", "0 with a tick", "zero with a tick"]},
+                2: {names: ["A T", "80"]},
                 3: {names: ["Lambda"]},
-                4: {names: ["Curly N"]},
-                5: {names: ["H triangle semicircle"]},
-                6: {names: ["Curly H"]},
+                4: {names: ["Curly N", "Kelly N"]},
+                5: {names: ["H triangle semicircle", "triangle semicircle"]},
+                6: {names: ["Curly H", "Kelly H"]},
                 7: {names: ["Backwards C with a dot"]},
                 8: {names: ["Backwards E"]},
                 9: {names: ["Curly C"]},
-                0: {names: ["Star outline"]},
+                10: {names: ["Star outline"]},
                 11: {names: ["Upside down question mark"]},
-                12: {names: ["Copyright mark"]},
+                12: {names: ["Copyright mark", "copyright symbol"]},
                 13: {names: ["Saggy tits"]},
-                14: {names: ["Reverse K"]},
-                15: {names: ["Three with a tick"]},
-                16: {names: ["Six"]},
-                17: {names: ["Paragraph mark"]},
-                18: {names: ["PT"]},
-                19: {names: ["Smiley face"]},
+                14: {names: ["Reverse K", "Double K"]},
+                15: {names: ["Three with a tick", "Three with a tail"]},
+                16: {names: ["Six", "6"]},
+                17: {names: ["Paragraph mark", "Paragraph symbol"]},
+                18: {names: ["PT", "BT"]},
+                19: {names: ["Smiley face", ":-)"]},
                 20: {names: ["Trident"]},
-                21: {names: ["C with a dot” (careful to not miss “backwards”"]},
-                22: {names: ["Paragraph mark"]},
-                23: {names: ["Snake 3"]},
-                24: {names: ["Star” (careful not to miss star outline"]},
-                25: {names: ["Bell bar"]},
-                26: {names: ["Dipthong"]},
-                27: {names: ["N"]},
-                28: {names: ["Omega"]},
+                21: {names: ["C with a dot"]},
+                22: {names: ["Snake 3", "three with a tail"]},
+                23: {names: ["Star"]},
+                24: {names: ["Bell bar"]},
+                25: {names: ["Diphthong"]},
+                26: {names: ["N", "N with a hat"]},
+                27: {names: ["Omega"]},
             };
 
-            var columns = {
+            var columns = [
+                [1, 2, 3, 4, 5, 6, 7],
+                [8, 1, 7, 9, 10, 6, 11],
+                [12, 13, 9, 14, 15, 3, 10],
+                [16,17,18,5,14,11,19],
+                [20,19,18,21,17,22,23],
+                [16,8,24,25,20,26,27]
 
-            };
+            ];
 
 
             var keypad = function (count) {
