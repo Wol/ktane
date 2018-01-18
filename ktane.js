@@ -1163,7 +1163,7 @@ angular.module('ktane', [])
 
             var position = function (value) {
                 value = numbers[value];
-                params.stages[params.stage].label = value;
+                params.stages[params.stage].position = value;
                 $scope.say("OK");
             };
 
@@ -1300,11 +1300,11 @@ angular.module('ktane', [])
             };
 
             var icons = {
-                1: {names: ["O with a tick", "0 with a tick", "zero with a tick"], columns:[1, 2]},
+                1: {names: ["balloon", "O with a tick", "0 with a tick", "zero with a tick"], columns:[1, 2]},
                 2: {names: ["A T", "80", "A with a dong"], columns:[1]},
                 3: {names: ["Lambda"], columns:[1, 3]},
-                4: {names: ["Curly N", "Kelly N"], columns:[1]},
-                5: {names: ["H triangle semicircle", "triangle semicircle", "H semicircle triangle", "semicircle triangle"], columns:[1, 4]},
+                4: {names: ["Curly N", "Kelly N", "squiggly n"], columns:[1]},
+                5: {names: ["H triangle semicircle", "triangle semicircle", "H semicircle triangle", "semicircle triangle", "triangle", "semi-circle", "semi circle", "squid knife"], columns:[1, 4]},
                 6: {names: ["Curly H", "Kelly H", "H with a tail"], columns:[1, 2]},
                 7: {names: ["Backwards C with a dot", "Backwards C"], columns:[1, 2]},
                 8: {names: ["Backwards E", "Backwards E with two dots"], columns:[2, 6]},
@@ -1325,7 +1325,7 @@ angular.module('ktane', [])
                 23: {names: ["Star"], columns:[5]},
                 24: {names: ["Bell bar"], columns:[6]},
                 25: {names: ["Diphthong", "Dipthong"], columns:[6]},
-                26: {names: ["N with a hat"], columns:[6]},
+                26: {names: ["N with a hat", "in with a hat"], columns:[6]},
                 27: {names: ["Omega"], columns:[6]},
             };
 
