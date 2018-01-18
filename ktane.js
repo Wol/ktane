@@ -111,6 +111,12 @@ angular.module('ktane', [])
 
         newbomb();
 
+
+        $scope.setCurrentModule = function (modulename, finishfunction){
+            // TODO: Have a function which sets the current module name that can dynamically un-register
+            // the module specific callbacks.
+        };
+
         // Returns a promise which gets the value of a property of the bomb. If it knows it already, it'll resolve
         // instantly, but otherwise it'll ask the user.
         $scope.property = function (propertyname) {
@@ -389,6 +395,18 @@ angular.module('ktane', [])
                 params.colour = colour;
                 params.word = word;
 
+
+                if(colour === undefined && word === undefined) {
+                    $scope.annyang.addCommands({
+                        "button:description": {
+                            'regexp': /^(?=.*\b(red|blue|white|yellow|black)\b)(?=.*\b(abort|hold|press|detonate)\b).*$/,
+                            'callback': button
+                        }
+                    });
+                    $scope.say("What is the colour and word?");
+                    return;
+                }
+
                 if (word === "detonate") {
                     $scope.property("batteries").then(function (batterycount) {
                         if (batterycount > 1) {
@@ -471,13 +489,17 @@ angular.module('ktane', [])
 
 
             var finish = function () {
-                $scope.annyang.removeCommands("button:heldcolour");
+                $scope.annyang.removeCommands("button:heldcolour", "button:description");
                 $scope.currentmodule = null;
             };
 
 
             $scope.annyang.addCommands({
                 "button": {
+                    'regexp': /^button$/,
+                    'callback': button
+                },
+                "button:withinfo": {
                     'regexp': /^button (?=.*\b(red|blue|white|yellow|black)\b)(?=.*\b(abort|hold|press|detonate)\b).*$/,
                     'callback': button
                 }
@@ -944,8 +966,8 @@ angular.module('ktane', [])
                     return;
                 }
                 position = position.toUpperCase()[0];
-                if(position === "P") position = "B"; // Peter
-                if(position === "S") position = "C"; // Sea
+                if(position === "P") position = "B"; // Peter (beta)
+                if(position === "S") position = "C"; // Sea (c)
 
                 colour = colour.toLowerCase();
 
@@ -979,14 +1001,8 @@ angular.module('ktane', [])
         $scope.memory = function () {
             var name = "memory";
             var params = {
-                stage: 0,
-                stages: {
-                    1: {"position": null, "label": null},
-                    2: {"position": null, "label": null},
-                    3: {"position": null, "label": null},
-                    4: {"position": null, "label": null},
-                    5: {"position": null, "label": null},
-                },
+                stage: null,
+                stages: null,
             };
 
 
@@ -1005,7 +1021,7 @@ angular.module('ktane', [])
 
                 $scope.annyang.addCommands({
                     "memory:display": {
-                        'regexp': /^display says (one|1|two|to|too|2|three|four|for|4|3)$/,
+                        'regexp': /^display (?:says|is) (one|1|two|to|too|2|three|four|for|4|3)$/,
                         'callback': display
                     },
                     "memory:label": {
@@ -1347,7 +1363,6 @@ angular.module('ktane', [])
 
                 $scope.log(words);
 
-                // TODO: Keypads
                 // First try and tokenise the string into what symbols are found
                 // Have a list of the icons and which columns theyre in
                 // filter this list
@@ -1419,7 +1434,7 @@ angular.module('ktane', [])
             };
 
             var finish = function () {
-                $scope.annyang.removeCommands(["keypad:symbols", "keypad:done"]);
+                $scope.annyang.removeCommands(["keypad:symbols"]);
                 $scope.currentmodule = null;
             };
 
@@ -1720,9 +1735,6 @@ angular.module('ktane', [])
 
             return params;
         }();
-
-
-        // TODO: Morse Code
 
 
         $scope.morsecode = function () {
