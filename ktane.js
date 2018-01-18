@@ -1284,44 +1284,44 @@ angular.module('ktane', [])
             };
 
             var icons = {
-                1: {names: ["O with a tick", "0 with a tick", "zero with a tick"]},
-                2: {names: ["A T", "80"]},
-                3: {names: ["Lambda"]},
-                4: {names: ["Curly N", "Kelly N"]},
-                5: {names: ["H triangle semicircle", "triangle semicircle"]},
-                6: {names: ["Curly H", "Kelly H"]},
-                7: {names: ["Backwards C with a dot"]},
-                8: {names: ["Backwards E"]},
-                9: {names: ["Curly C"]},
-                10: {names: ["Star outline"]},
-                11: {names: ["Upside down question mark"]},
-                12: {names: ["Copyright mark", "copyright symbol"]},
-                13: {names: ["Saggy tits"]},
-                14: {names: ["Reverse K", "Double K"]},
-                15: {names: ["Three with a tick", "Three with a tail"]},
-                16: {names: ["Six", "6"]},
-                17: {names: ["Paragraph mark", "Paragraph symbol"]},
-                18: {names: ["PT", "BT"]},
-                19: {names: ["Smiley face", ":-)"]},
-                20: {names: ["Trident"]},
-                21: {names: ["C with a dot"]},
-                22: {names: ["Snake 3", "three with a tail"]},
-                23: {names: ["Star"]},
-                24: {names: ["Bell bar"]},
-                25: {names: ["Diphthong"]},
-                26: {names: ["N", "N with a hat"]},
-                27: {names: ["Omega"]},
+                1: {names: ["O with a tick", "0 with a tick", "zero with a tick"], columns:[1, 2]},
+                2: {names: ["A T", "80", "A with a dong"], columns:[1]},
+                3: {names: ["Lambda"], columns:[1, 3]},
+                4: {names: ["Curly N", "Kelly N"], columns:[1]},
+                5: {names: ["H triangle semicircle", "triangle semicircle", "H semicircle triangle", "semicircle triangle"], columns:[1, 4]},
+                6: {names: ["Curly H", "Kelly H", "H with a tail"], columns:[1, 2]},
+                7: {names: ["Backwards C with a dot", "Backwards C"], columns:[1, 2]},
+                8: {names: ["Backwards E", "Backwards E with two dots"], columns:[2, 6]},
+                9: {names: ["Curly C"], columns:[2, 3]},
+                10: {names: ["Star outline", "Star"], columns:[2, 3]},
+                11: {names: ["Upside down question mark", "Upsidedown questionmark"], columns:[2, 4]},
+                12: {names: ["Copyright mark", "copyright symbol"], columns:[3]},
+                13: {names: ["Saggy tits"], columns:[3]},
+                14: {names: ["Double K", "Reverse K"], columns:[3, 4]},
+                15: {names: ["Three with a tail", "Three with a tick"], columns:[3]},
+                16: {names: ["Six", "6"], columns:[4]},
+                17: {names: ["Paragraph mark", "Paragraph symbol"], columns:[4, 5]},
+                18: {names: ["PT", "BT", "P T", "B T"], columns:[4, 5]},
+                19: {names: ["Smiley face", ":-)"], columns:[4, 5]},
+                20: {names: ["Trident"], columns:[5, 6]},
+                21: {names: ["C with a dot"], columns:[5]},
+                22: {names: ["Snake 3", "three with a tail"], columns:[5]},
+                23: {names: ["Star"], columns:[5]},
+                24: {names: ["Bell bar"], columns:[6]},
+                25: {names: ["Diphthong", "Dipthong"], columns:[6]},
+                26: {names: ["N with a hat"], columns:[6]},
+                27: {names: ["Omega"], columns:[6]},
             };
 
-            var columns = [
-                [1, 2, 3, 4, 5, 6, 7],
-                [8, 1, 7, 9, 10, 6, 11],
-                [12, 13, 9, 14, 15, 3, 10],
-                [16,17,18,5,14,11,19],
-                [20,19,18,21,17,22,23],
-                [16,8,24,25,20,26,27]
-
-            ];
+            // This is the order in which each icon is in the column
+            var columns = {
+                1: [1, 2, 3, 4, 5, 6, 7],
+                2: [8, 1, 7, 9, 10, 6, 11],
+                3: [12, 13, 9, 14, 15, 3, 10],
+                4: [16, 17, 18, 5, 14, 11, 19],
+                5: [20, 19, 18, 21, 17, 22, 23],
+                6: [16, 8, 24, 25, 20, 26, 27],
+            };
 
 
             var keypad = function (count) {
@@ -1330,12 +1330,20 @@ angular.module('ktane', [])
 
                 $scope.say("Symbols");
 
+                $scope.annyang.addCommands({
+                    "keypad:symbols": {
+                        'regexp': /^(.*)$/, // at this point we're just matching a variable number of words!
+                        'callback': symbols
+                    },
+                });
+
+
 
             };
 
             var symbols = function (words) {
 
-                words = words.toUpperCase()[0];
+                words = " " + words.toUpperCase() + " ";
 
                 $scope.log(words);
 
@@ -1343,6 +1351,70 @@ angular.module('ktane', [])
                 // First try and tokenise the string into what symbols are found
                 // Have a list of the icons and which columns theyre in
                 // filter this list
+
+                var position = null;
+
+                var columnhits = {
+                    1: [],
+                    2: [],
+                    3: [],
+                    4: [],
+                    5: [],
+                    6: [],
+                };
+
+                // lambda H triangle semicircle backwards c with a dot o with a tick
+                // h semicircle triangle double k paragraph symbol :-)
+                // three with a tail saggy tits lambda copyright symbol
+                // star h with a tail backwards c upside down question mark
+                // CURLY N O WITH A TICK BACKWARDS C WITH A DOT CURLY H
+
+
+                _.each(icons, function(icon, idx){
+                    _.each(icon.names, function(name){
+                        var n = " " + name.toUpperCase() + " ";
+
+                        if((position = words.indexOf(n)) > -1){
+                            console.log(position, name);
+                            // We've found an icon in the string.
+                            _.each(icon.columns,function(c) {
+                                // Add it to the array if it isn't in there already
+                                if(!columnhits[c].includes(parseInt(idx))) {
+                                    columnhits[c].push(parseInt(idx));
+                                }
+                            });
+
+                        }
+                    });
+                });
+
+                var possiblecolumns = [];
+                // Work out which options have 4 or more matches
+                _.each(columnhits, function(c, idx){
+                    if(c.length >= 4){
+                        possiblecolumns.push(idx);
+                    }
+                });
+
+                if(possiblecolumns.length === 1){
+                    // We've only got one column thats got 4 (or more) matches, read them out in turn:
+
+                    var columnid = possiblecolumns[0];
+
+                    // Loop through each iconID in order from top to bottom
+                    _.each(columns[columnid], function(iconid){
+
+                        if(columnhits[columnid].includes(iconid)) {
+                            $scope.say(icons[iconid].names[0]); // read out the first name found.
+                        }
+
+                        finish();
+                    });
+                }else if(possiblecolumns.length === 0){
+                    $scope.say("Couldn't find a match. Try again.")
+                }else{
+                    $scope.say("There's more than one column which matches.")
+                }
 
             };
 
