@@ -415,6 +415,7 @@ angular.module('ktane', [])
                             holdandchecklight();
                         }
                     });
+                    return;
                 }
                 if (colour === "white") {
                     $scope.property("car").then(function (car) {
@@ -424,6 +425,7 @@ angular.module('ktane', [])
                             checkfrk();
                         }
                     });
+                    return;
                 }
 
                 if (colour === "red" && word === "hold") {
@@ -610,7 +612,7 @@ angular.module('ktane', [])
                 ]),
                 h: tl2tlbr([
                     [3, 3, 1, 1, 3, 1],
-                    [2, 3, 1, 2, 0, 2],
+                    [2, 0, 1, 2, 0, 2],
                     [2, 3, 1, 1, 1, 2],
                     [2, 2, 1, 3, 0, 0],
                     [2, 3, 2, 1, 1, 1],
@@ -849,7 +851,7 @@ angular.module('ktane', [])
                 $scope.say("Please give letters for first, third and fourth positions.");
                 $scope.annyang.addCommands({
                     "password:letter": {
-                        'regexp': /^(first|second|third|fourth|fifth) letter (\w+) (\w+) (\w+) (\w+) (\w+)$/,
+                        'regexp': /^(first|second|third|fourth|fifth) letter (\S+) (\S+) (\S+) (\S+) (\S+) (\S+)$/,
                         'callback': letter
                     }
                 });
@@ -1021,15 +1023,15 @@ angular.module('ktane', [])
 
                 $scope.annyang.addCommands({
                     "memory:display": {
-                        'regexp': /^display (?:says|is) (one|1|two|to|too|2|three|four|for|4|3)$/,
+                        'regexp': /^display (?:says|is)? ?(one|1|two|to|too|2|three|four|for|4|3)$/,
                         'callback': display
                     },
                     "memory:label": {
-                        'regexp': /^label (?:was)? (one|1|two|to|too|2|three|four|for|4|3)$/,
+                        'regexp': /^label (?:was|is|says)? ?(one|1|two|to|too|2|three|four|for|4|3)$/,
                         'callback': label
                     },
                     "memory:position": {
-                        'regexp': /^position (?:was)? (one|1|two|to|too|2|three|four|for|4|3)$/,
+                        'regexp': /^position (?:was|is|says)? ?(one|1|two|to|too|2|three|four|for|4|3)$/,
                         'callback': position
                     }
 
@@ -1296,14 +1298,15 @@ angular.module('ktane', [])
         $scope.keypad = function () {
             var name = "keypad";
             var params = {
-
+                columnhits: {},
+                words: [],
             };
 
             var icons = {
                 1: {names: ["balloon", "O with a tick", "0 with a tick", "zero with a tick"], columns:[1, 2]},
                 2: {names: ["A T", "80", "A with a dong"], columns:[1]},
-                3: {names: ["Lambda"], columns:[1, 3]},
-                4: {names: ["Curly N", "Kelly N", "squiggly n"], columns:[1]},
+                3: {names: ["Lambda", "LAMDA"], columns:[1, 3]},
+                4: {names: ["Curly N", "Kelly N", "squiggly n", "Kelly-Anne"], columns:[1]},
                 5: {names: ["H triangle semicircle", "triangle semicircle", "H semicircle triangle", "semicircle triangle", "triangle", "semi-circle", "semi circle", "squid knife"], columns:[1, 4]},
                 6: {names: ["Curly H", "Kelly H", "H with a tail"], columns:[1, 2]},
                 7: {names: ["Backwards C with a dot", "Backwards C"], columns:[1, 2]},
@@ -1346,6 +1349,8 @@ angular.module('ktane', [])
 
                 $scope.say("Symbols");
 
+                reset();
+
                 $scope.annyang.addCommands({
                     "keypad:symbols": {
                         'regexp': /^(.*)$/, // at this point we're just matching a variable number of words!
@@ -1357,19 +1362,11 @@ angular.module('ktane', [])
 
             };
 
-            var symbols = function (words) {
+            var columnhits = {};
 
-                words = " " + words.toUpperCase() + " ";
+            var reset = function() {
 
-                $scope.log(words);
-
-                // First try and tokenise the string into what symbols are found
-                // Have a list of the icons and which columns theyre in
-                // filter this list
-
-                var position = null;
-
-                var columnhits = {
+                params.columnhits = {
                     1: [],
                     2: [],
                     3: [],
@@ -1378,24 +1375,52 @@ angular.module('ktane', [])
                     6: [],
                 };
 
+                params.words = [];
+
+            };
+
+            var symbols = function (words) {
+
+
+                if(words.includes("reset")){
+                    reset();
+                    return;
+                }
+
+                var spokenwords = " " + words.toUpperCase() + " ";
+
+
+
+
+                // First try and tokenise the string into what symbols are found
+                // Have a list of the icons and which columns theyre in
+                // filter this list
+
+                var position = null;
+
+
                 // lambda H triangle semicircle backwards c with a dot o with a tick
                 // h semicircle triangle double k paragraph symbol :-)
                 // three with a tail saggy tits lambda copyright symbol
                 // star h with a tail backwards c upside down question mark
                 // CURLY N O WITH A TICK BACKWARDS C WITH A DOT CURLY H
 
+                var wordfound = false;
 
                 _.each(icons, function(icon, idx){
                     _.each(icon.names, function(name){
                         var n = " " + name.toUpperCase() + " ";
 
-                        if((position = words.indexOf(n)) > -1){
-                            console.log(position, name);
+                        if((position = spokenwords.indexOf(n)) > -1){
+                            if(!params.words.includes(words)){
+                                params.words.push(words); // This counts for the weird 'star' situation which is two icons with the same word
+                            }
+                            wordfound = true;
                             // We've found an icon in the string.
                             _.each(icon.columns,function(c) {
                                 // Add it to the array if it isn't in there already
-                                if(!columnhits[c].includes(parseInt(idx))) {
-                                    columnhits[c].push(parseInt(idx));
+                                if(!params.columnhits[c].includes(parseInt(idx))) {
+                                    params.columnhits[c].push(parseInt(idx));
                                 }
                             });
 
@@ -1403,15 +1428,21 @@ angular.module('ktane', [])
                     });
                 });
 
+                if(!wordfound){
+                    $scope.say("Could not find " + words);
+                    return;
+                }
+
                 var possiblecolumns = [];
                 // Work out which options have 4 or more matches
-                _.each(columnhits, function(c, idx){
-                    if(c.length >= 4){
+                _.each(params.columnhits, function(c, idx){
+                    // If a column has as many words as we've said in it....
+                    if(c.length >= params.words.length){
                         possiblecolumns.push(idx);
                     }
                 });
 
-                if(possiblecolumns.length === 1){
+                if(possiblecolumns.length === 1 && params.words.length === 4){
                     // We've only got one column thats got 4 (or more) matches, read them out in turn:
 
                     var columnid = possiblecolumns[0];
@@ -1419,7 +1450,7 @@ angular.module('ktane', [])
                     // Loop through each iconID in order from top to bottom
                     _.each(columns[columnid], function(iconid){
 
-                        if(columnhits[columnid].includes(iconid)) {
+                        if(params.columnhits[columnid].includes(iconid)) {
                             $scope.say(icons[iconid].names[0]); // read out the first name found.
                         }
 
@@ -1428,7 +1459,7 @@ angular.module('ktane', [])
                 }else if(possiblecolumns.length === 0){
                     $scope.say("Couldn't find a match. Try again.")
                 }else{
-                    $scope.say("There's more than one column which matches.")
+                    $scope.say("Next")
                 }
 
             };
@@ -1614,7 +1645,7 @@ angular.module('ktane', [])
                     finish();
                     return;
                 }
-                if(words === "continue"){
+                if(words === "continue" || words === "next"){
                     $scope.shutup();
                     params.displayword = null;
                     return;
