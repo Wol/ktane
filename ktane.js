@@ -554,78 +554,78 @@ angular.module('ktane', [])
             };
 
             var mazes = {
-                a: tl2tlbr([ // 1,5 6,4
+                a: {'maze': tl2tlbr([ // 1,5 6,4
                     [3, 1, 1, 3, 1, 1],
                     [2, 3, 0, 2, 1, 1],
                     [2, 2, 1, 3, 1, 0],
                     [2, 3, 0, 0, 3, 0],
                     [2, 1, 1, 3, 1, 2],
                     [2, 1, 2, 0, 3, 0],
-                ]),
-                b: tl2tlbr([ // 2,3 5,5
+                ]), 'image': 'maze0.svg'},
+                b: {'maze': tl2tlbr([ // 2,3 5,5
                     [3, 1, 1, 3, 1, 1],
                     [3, 0, 3, 0, 2, 1],
                     [2, 3, 0, 3, 1, 0],
                     [2, 0, 3, 0, 3, 2],
                     [2, 3, 2, 3, 0, 2],
                     [2, 2, 0, 2, 1, 0],
-                ]),
-                c: tl2tlbr([
+                ]), 'image': 'maze1.svg'},
+                c: {'maze': tl2tlbr([
                     [3, 1, 1, 3, 3, 1],
                     [2, 3, 2, 2, 0, 2],
                     [3, 0, 2, 3, 1, 2],
                     [2, 2, 2, 2, 2, 2],
                     [2, 2, 0, 2, 2, 2],
                     [2, 1, 1, 0, 2, 0],
-                ]),
-                d: tl2tlbr([
+                ]), 'image': 'maze2.svg'},
+                d: {'maze': tl2tlbr([
                     [3, 1, 3, 1, 1, 1],
                     [2, 2, 3, 1, 1, 0],
                     [2, 2, 0, 3, 1, 2],
                     [2, 3, 1, 0, 1, 0],
                     [2, 1, 1, 1, 1, 2],
                     [2, 1, 1, 3, 0, 2],
-                ]),
-                e: tl2tlbr([
+                ]), 'image': 'maze3.svg'},
+                e: {'maze': tl2tlbr([
                     [3, 1, 1, 1, 1, 1],
                     [3, 1, 1, 1, 0, 2],
                     [2, 1, 3, 0, 3, 1],
                     [2, 2, 1, 1, 2, 2],
                     [2, 3, 1, 0, 1, 2],
                     [2, 2, 1, 1, 1, 0],
-                ]),
-                f: tl2tlbr([
+                ]), 'image': 'maze4.svg'},
+                f: {'maze': tl2tlbr([
                     [3, 3, 1, 3, 1, 1],
                     [2, 2, 2, 3, 0, 2],
                     [2, 0, 2, 2, 3, 0],
                     [2, 1, 3, 0, 2, 3],
                     [3, 0, 2, 2, 2, 0],
                     [2, 1, 1, 0, 3, 0],
-                ]),
-                g: tl2tlbr([
+                ]), 'image': 'maze5.svg'},
+                g: {'maze': tl2tlbr([
                     [3, 1, 1, 1, 3, 1],
                     [2, 3, 1, 2, 0, 2],
                     [2, 0, 3, 1, 3, 0],
                     [3, 1, 2, 1, 0, 3],
                     [2, 2, 2, 1, 1, 2],
                     [2, 1, 1, 1, 0, 0],
-                ]),
-                h: tl2tlbr([
+                ]), 'image': 'maze6.svg'},
+                h: {'maze': tl2tlbr([
                     [3, 3, 1, 1, 3, 1],
                     [2, 0, 1, 2, 0, 2],
                     [2, 3, 1, 1, 1, 2],
                     [2, 2, 1, 3, 0, 0],
                     [2, 3, 2, 1, 1, 1],
                     [2, 0, 1, 1, 1, 1],
-                ]),
-                i: tl2tlbr([
+                ]), 'image': 'maze7.svg'},
+                i: {'maze': tl2tlbr([
                     [3, 3, 1, 1, 1, 1],
                     [2, 2, 3, 1, 2, 2],
                     [2, 0, 0, 3, 0, 2],
                     [2, 3, 3, 0, 3, 0],
                     [2, 2, 2, 3, 1, 2],
                     [2, 0, 2, 0, 2, 1],
-                ]),
+                ]), 'image': 'maze8.svg'},
             };
 
             var mazemarkers = {
@@ -753,6 +753,8 @@ angular.module('ktane', [])
                     {label: 'right', dy: 0, dx: 1, bit: 8},
                 ];
 
+                var solution = null;
+
                 // Whilst there are still squares to check....
                 while (queue.length > 0) {
                     // Take the first location off the queue
@@ -763,7 +765,7 @@ angular.module('ktane', [])
 
                     // Have we hit the target point.
                     if (params.targetposition[0] === _x && params.targetposition[1] === _y) {
-                        location = currentLocation;
+                        solution = currentLocation;
                         break;
                     }
 
@@ -775,7 +777,7 @@ angular.module('ktane', [])
                         newPath.push(direction.label); // Textual description of this current path.
 
                         // If we can transition in the direction we want to go, and we've not visited that cell, add it to the queue
-                        if ((params.selectedmaze[_y][_x] & direction.bit) === 0 && visited[_y + direction.dy][_x + direction.dx] === 0) {
+                        if ((params.selectedmaze.maze[_y][_x] & direction.bit) === 0 && visited[_y + direction.dy][_x + direction.dx] === 0) {
                             queue.push({
                                 _x: _x + direction.dx,
                                 _y: _y + direction.dy,
@@ -789,8 +791,11 @@ angular.module('ktane', [])
 
                 } // end while
 
-
-                $scope.say(currentLocation.path.join(". "), 0.7);
+                if(solution) {
+                    $scope.say(currentLocation.path.join(". "), 0.7);
+                }else{
+                    $scope.say("No solution could be found");
+                }
 
                 finish();
             };
@@ -1303,33 +1308,33 @@ angular.module('ktane', [])
             };
 
             var icons = {
-                1: {names: ["balloon", "O with a tick", "0 with a tick", "zero with a tick"], columns:[1, 2]},
-                2: {names: ["A T", "80", "A with a dong"], columns:[1]},
-                3: {names: ["Lambda", "LAMDA"], columns:[1, 3]},
-                4: {names: ["Curly N", "Kelly N", "squiggly n", "Kelly-Anne"], columns:[1]},
-                5: {names: ["H triangle semicircle", "triangle semicircle", "H semicircle triangle", "semicircle triangle", "triangle", "semi-circle", "semi circle", "squid knife"], columns:[1, 4]},
-                6: {names: ["Curly H", "Kelly H", "H with a tail"], columns:[1, 2]},
-                7: {names: ["Backwards C with a dot", "Backwards C"], columns:[1, 2]},
-                8: {names: ["Backwards E", "Backwards E with two dots"], columns:[2, 6]},
-                9: {names: ["Curly C"], columns:[2, 3]},
-                10: {names: ["Star outline", "Star"], columns:[2, 3]},
-                11: {names: ["Upside down question mark", "Upsidedown questionmark"], columns:[2, 4]},
-                12: {names: ["Copyright mark", "copyright symbol"], columns:[3]},
-                13: {names: ["Saggy tits"], columns:[3]},
-                14: {names: ["Double K", "Reverse K"], columns:[3, 4]},
-                15: {names: ["Three with a tail", "Three with a tick"], columns:[3]},
-                16: {names: ["Six", "6"], columns:[4]},
-                17: {names: ["Paragraph mark", "Paragraph symbol"], columns:[4, 5]},
-                18: {names: ["PT", "BT", "P T", "B T"], columns:[4, 5]},
-                19: {names: ["Smiley face", ":-)"], columns:[4, 5]},
-                20: {names: ["Trident"], columns:[5, 6]},
-                21: {names: ["C with a dot"], columns:[5]},
-                22: {names: ["Snake 3", "three with a tail"], columns:[5]},
-                23: {names: ["Star"], columns:[5]},
-                24: {names: ["Bell bar"], columns:[6]},
-                25: {names: ["Diphthong", "Dipthong"], columns:[6]},
-                26: {names: ["N with a hat", "in with a hat"], columns:[6]},
-                27: {names: ["Omega"], columns:[6]},
+                1: { filename: "28-balloon.png", names: ["balloon", "O with a tick", "0 with a tick", "zero with a tick"], columns:[1, 2]},
+                2: { filename: "13-at.png", names: ["A T", "80", "A with a dong"], columns:[1]},
+                3: { filename: "30-upsidedowny.png", names: ["Lambda", "LAMDA"], columns:[1, 3]},
+                4: { filename: "12-squigglyn.png", names: ["Curly N", "Kelly N", "squiggly n", "Kelly-Anne"], columns:[1]},
+                5: { filename: "7-squidknife.png", names: ["H triangle semicircle", "triangle semicircle", "H semicircle triangle", "semicircle triangle", "triangle", "semi-circle", "semi circle", "squid knife"], columns:[1, 4]},
+                6: { filename: "9-hookn.png", names: ["Curly H", "Kelly H", "H with a tail"], columns:[1, 2]},
+                7: { filename: "23-leftc.png", names: ["Backwards C with a dot", "Backwards C"], columns:[1, 2]},
+                8: { filename: "16-euro.png", names: ["Backwards E", "Backwards E with two dots"], columns:[2, 6]},
+                9: { filename: "26-cursive.png", names: ["Curly C"], columns:[2, 3]},
+                10: {filename: "3-hollowstar.png", names: ["Star outline", "Star"], columns:[2, 3]},
+                11: {filename: "20-questionmark.png", names: ["Upside down question mark", "Upsidedown questionmark"], columns:[2, 4]},
+                12: {filename: "1-copyright.png", names: ["Copyright mark", "copyright symbol"], columns:[3]},
+                13: {filename: "8-pumpkin.png", names: ["Saggy tits"], columns:[3]},
+                14: {filename: "5-doublek.png", names: ["Double K", "Reverse K"], columns:[3, 4]},
+                15: {filename: "15-meltedthree.png", names: ["Three with a tail", "Three with a tick"], columns:[3]},
+                16: {filename: "11-six.png", names: ["Six", "6"], columns:[4]},
+                17: {filename: "21-paragraph.png", names: ["Paragraph mark", "Paragraph symbol"], columns:[4, 5]},
+                18: {filename: "31-bt.png", names: ["PT", "BT", "P T", "B T"], columns:[4, 5]},
+                19: {filename: "4-smileyface.png", names: ["Smiley face", ":-)"], columns:[4, 5]},
+                20: {filename: "24-pitchfork.png", names: ["Trident"], columns:[5, 6]},
+                21: {filename: "22-rightc.png", names: ["C with a dot"], columns:[5]},
+                22: {filename: "19-dragon.png", names: ["Snake 3", "three with a tail"], columns:[5]},
+                23: {filename: "2-filledstar.png", names: ["Star"], columns:[5]},
+                24: {filename: "27-tracks", names: ["Bell bar"], columns:[6]},
+                25: {filename: "14-ae.png", names: ["Diphthong", "Dipthong"], columns:[6]},
+                26: {filename: "18-nwithhat.png", names: ["N with a hat", "in with a hat"], columns:[6]},
+                27: {filename: "6-omega", names: ["Omega"], columns:[6]},
             };
 
             // This is the order in which each icon is in the column

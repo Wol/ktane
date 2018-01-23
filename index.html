@@ -52,7 +52,7 @@
 
 
 
-    <h3>Memory</h3>
+    <h3>Who's on first</h3>
     Word on Display: {{whosonfirst.displayword}}<br/>
     Selected button position: {{whosonfirst.position}}<br/>
     Word on button: {{whosonfirst.buttonword}}<br/>
@@ -80,6 +80,13 @@
         </style>
         <span ng-repeat="streak in morsecode.streaks" class="morseblock" ng-style="{'width': streak.streak + 'px'}" ng-class="{black: streak.value}">&nbsp;</span>
     </div>
+
+
+    <h3>Keypad</h3>
+    Columnhits: {{keypad.columnhits}}
+    Words: {{keypad.words}}
+
+
     <hr/>
 
     <ul>
